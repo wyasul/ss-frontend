@@ -1496,49 +1496,33 @@ body, html {
   
   .report-content {
       width: 100%;
-      max-width: 100%;
+      max-width: none;
       padding: 0;
       margin: 0;
       box-sizing: border-box;
   }
   
   .route-section {
-      padding: 0;
-      margin: 0;
-      margin-bottom: 0;
+      padding: 20px;
+      margin-bottom: 50px;
       width: 100%;
-      max-width: 100%;
       box-sizing: border-box;
       background: transparent;
   }
-  .mobile-route-name {
-    text-align: center;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-    margin: 0 auto 20px auto;
-    padding: 0 10px;
-    font-size: 1.5em;
-    line-height: 1.3;
-  }
   
-  .route-section > * {
-      padding-left: 20px;
-      padding-right: 20px;
-  }
-  
-  .route-section > .photos-section,
-  .route-section > .mobile-map-container,
-  .route-section > .mobile-map-button-container {
-      padding-left: 0;
-      padding-right: 0;
+  .route-section h2 {
+      text-align: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      line-height: 1.3;
   }
   
   .activity-info {
-      padding: 15px 20px;
-      margin: 10px 0;
+      padding: 10px;
+      margin-top: 10px;
       width: 100%;
-      max-width: 100%;
       box-sizing: border-box;
       background: rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(40px) saturate(180%);
@@ -1548,8 +1532,6 @@ body, html {
       box-shadow: 
         0 4px 16px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      word-wrap: break-word;
-      overflow-wrap: break-word;
   }
   
   .activity-info h4 {
@@ -1558,6 +1540,8 @@ body, html {
       color: white;
       word-wrap: break-word;
       overflow-wrap: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
   }
   
   .activity-info ul {
@@ -1565,7 +1549,9 @@ body, html {
       padding: 0;
       margin: 10px 0;
       width: 100%;
+      max-width: 100%;
       box-sizing: border-box;
+      overflow-x: hidden;
   }
   
   .activity-info li {
@@ -1575,6 +1561,9 @@ body, html {
       border-radius: 8px;
       word-wrap: break-word;
       overflow-wrap: break-word;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
   }
   
   .activity-info a {
@@ -1584,6 +1573,9 @@ body, html {
       word-wrap: break-word;
       overflow-wrap: break-word;
       display: block;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
   }
   
   .activity-info a:hover {
@@ -1596,6 +1588,16 @@ body, html {
       overflow-wrap: break-word;
       max-width: 100%;
       display: inline-block;
+      box-sizing: border-box;
+  }
+  
+  .activity-info p,
+  .activity-info div {
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
   }
   
   .mobile-map-button-container {
@@ -1843,16 +1845,18 @@ body, html {
     left: 0;
     right: 0;
     bottom: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-color: #2c2c2c;
     color: white;
     padding: 60px 0 0 0;
+    margin: 0;
     box-sizing: border-box;
     z-index: 100;
     transition: transform 0.3s ease;
     transform: translateX(100%);
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
   

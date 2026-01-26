@@ -3,6 +3,12 @@ import axios from 'axios';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 
+const emojiSets = {
+  'trail run': ["🏃‍♂️", "🏃‍♀️"],
+  'backcountry ski': ["⛷️", "🏂"],
+  'mountain bike': ["🚵‍♂️", "🚵‍♀️"],
+};
+
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
