@@ -1449,7 +1449,7 @@ body, html {
     width: 100%;
       height: auto;
       position: relative;
-      padding: var(--padding-base);
+      padding: 0;
       margin-top: 80px; /* Add margin to ensure it doesn't overlap */
     }
   
@@ -1460,7 +1460,7 @@ body, html {
     }
   
     .navbar a {
-      padding: var(--padding-base);
+      padding: 0;
     text-align: center;
       border-bottom: 1px solid #555;
     }
@@ -1470,7 +1470,7 @@ body, html {
     }
   
     .app-container {
-      padding: var(--padding-base);
+      padding: 0;
       align-items: flex-start;
     }
   
@@ -1493,7 +1493,7 @@ body, html {
   }
   
   .report-container {
-      padding: var(--padding-base);
+      padding: 0;
       align-items: flex-start;
       margin-top: 30px; /* Add margin to ensure it doesn't overlap */
   }
@@ -1510,11 +1510,12 @@ body, html {
   }
   
   .route-section {
-      padding: var(--padding-base);
-      margin-bottom: 50px;
+      padding: 0;
+      margin-bottom: 0;
     width: 100%;
   }
   
+      background: transparent;
   .mobile-route-name {
     text-align: center;
     word-wrap: break-word;
@@ -1873,7 +1874,7 @@ body, html {
     width: 100%;
       height: auto;
       position: relative;
-      padding: var(--padding-base);
+      padding: 0;
       margin-top: 40px; /* Add margin to avoid overlap */
     }
   
