@@ -1168,6 +1168,7 @@ body, html {
   .navbar ul {
     list-style-type: none;
     padding: 0;
+  }
   
   .navbar li {
     margin-bottom: 10px;
