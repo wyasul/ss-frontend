@@ -2370,3 +2370,14 @@ body, html {
       inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
     transform: translateY(-1px) !important;
   }
+  .route-section > * {
+      padding-left: 20px;
+      padding-right: 20px;
+  }
+  
+  .route-section > .photos-section,
+  .route-section > .mobile-map-container,
+  .route-section > .activity-info {
+      padding-left: 0;
+      padding-right: 0;
+  }
