@@ -1518,8 +1518,48 @@ body, html {
   }
   
   .activity-info {
-      padding: 15px 20px;
-      margin-bottom: 15px;
+      padding: 15px;
+      margin: 10px 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  .activity-info h4 {
+      font-size: 16px;
+      margin: 10px 0;
+      color: white;
+  }
+  
+  .activity-info ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+  }
+  
+  .activity-info li {
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+  }
+  
+  .activity-info a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+  }
+  
+  .activity-info a:hover {
+      color: #e94e0b;
+      text-decoration: underline;
   }
   
   .mobile-map-button-container {
