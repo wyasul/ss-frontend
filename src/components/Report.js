@@ -287,7 +287,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         className="description-toggle"
                         onClick={() => toggleDescription(selectedRoute, i)}
                       >
-                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼' : '▶'} Show Description
+                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
                       </button>
                       {expandedDescriptions[`${selectedRoute}-${i}`] && (
                         <p className="route-description">{activityInfo.conditions.join(', ')}</p>
@@ -480,7 +480,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                                 className="description-toggle"
                                 onClick={() => toggleDescription(route, i)}
                               >
-                                {expandedDescriptions[`${route}-${i}`] ? '▼' : '▶'} Show Description
+                                {expandedDescriptions[`${route}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
                               </button>
                               {expandedDescriptions[`${route}-${i}`] && (
                                 <p className="route-description">{activityInfo.conditions.join(', ')}</p>
