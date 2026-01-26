@@ -1418,7 +1418,7 @@ body, html {
     .place-select,
     .date-select {
       padding: 15px 20px;
-      margin-top: 5px;
+      margin-top: 0; /* Reduced from 5px to bring closer */
       font-size: 16px;
       padding-right: 30px;
     }
@@ -1430,7 +1430,7 @@ body, html {
       width: 100%;
       max-width: 100%;
       align-items: flex-start;
-      padding-top: 35px; /* Account for disclaimer banner */
+      padding-top: 30px; /* Account for disclaimer banner - reduced from 35px */
     }
     
     /* Select container wrapper */
@@ -1439,18 +1439,19 @@ body, html {
       max-width: 100%;
       padding: 0 20px;
       box-sizing: border-box;
-      margin-top: 20px;
+      margin-top: 10px; /* Reduced from 20px to move up */
     }
     
     /* Radio groups */
     .radio-groups {
       flex-direction: column;
       align-items: center;
-      gap: 1rem;
+      gap: 0.5rem; /* Reduced from 1rem to bring closer together */
       width: 100%;
       max-width: 100%;
       padding: 0;
       margin: 0 auto;
+      margin-bottom: 0.5rem; /* Added to reduce space before date select */
       box-sizing: border-box;
     }
     
