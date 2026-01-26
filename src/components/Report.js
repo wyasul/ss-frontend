@@ -261,7 +261,17 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       </div>
                     )}
                     {report[routeName].activityInfo[0].conditions.length > 0 && (
-                      <p className="route-conditions">{report[routeName].activityInfo[0].conditions.join(', ')}</p>
+                      <div className="description-container">
+                        <button
+                          className="description-toggle"
+                          onClick={() => toggleDescription(routeName, 0)}
+                        >
+                          {expandedDescriptions[`${routeName}-0`] ? '▼ Hide Description' : '▶ Show Description'}
+                        </button>
+                        {expandedDescriptions[`${routeName}-0`] && (
+                          <p className="route-description">{report[routeName].activityInfo[0].conditions.join(', ')}</p>
+                        )}
+                      </div>
                     )}
                   </>
                 )}
