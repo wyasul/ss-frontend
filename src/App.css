@@ -1418,19 +1418,24 @@ body, html {
     .place-select,
     .date-select {
       padding: 15px 20px;
-      margin-top: 0; /* Reduced from 5px to bring closer */
+      margin-top: 0 !important; /* No margin to bring closer */
       font-size: 16px;
       padding-right: 30px;
     }
     
+    /* Date select specifically - reduce gap from radio groups */
+    .date-select {
+      margin-top: 0 !important;
+    }
+    
     /* App container */
     .app-container {
-      padding: 0;
-      margin: 0;
+      padding: 0 !important;
+      margin: 0 !important;
       width: 100%;
       max-width: 100%;
       align-items: flex-start;
-      padding-top: 30px; /* Account for disclaimer banner - reduced from 35px */
+      padding-top: 25px !important; /* Account for disclaimer banner - moved up significantly */
     }
     
     /* Select container wrapper */
@@ -1439,25 +1444,27 @@ body, html {
       max-width: 100%;
       padding: 0 20px;
       box-sizing: border-box;
-      margin-top: 10px; /* Reduced from 20px to move up */
+      margin-top: 5px !important; /* Moved up significantly from 20px */
     }
     
     /* Radio groups */
     .radio-groups {
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem; /* Reduced from 1rem to bring closer together */
+      gap: 0.25rem !important; /* Much closer together - reduced from 1rem */
       width: 100%;
       max-width: 100%;
       padding: 0;
-      margin: 0 auto;
-      margin-bottom: 0.5rem; /* Added to reduce space before date select */
+      margin: 0 auto !important;
+      margin-bottom: 0.25rem !important; /* Reduced space before date select */
       box-sizing: border-box;
     }
     
     .radio-group {
       width: 100%;
       box-sizing: border-box;
+      padding: 0.75rem 1.25rem !important; /* Reduced vertical padding to make boxes shorter/thinner */
+      gap: 0.5rem !important; /* Reduced gap between radio options */
     }
     
     /* Navbar - consolidated single definition */
