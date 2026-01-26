@@ -16,6 +16,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [displayImagesState, setDisplayImagesState] = useState({});
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [showMap, setShowMap] = useState({}); // State to track map visibility
+  const [expandedDescriptions, setExpandedDescriptions] = useState({}); // State to track expanded descriptions
   const routeRefs = useRef({});
   console.log(place)
 
@@ -196,6 +197,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }));
   };
 
+  const toggleDescription = (route, activityIndex) => {
+    const key = `${route}-${activityIndex}`;
+    setExpandedDescriptions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   const sanitizeId = (str) => {
     return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   };
@@ -269,22 +278,22 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           </button>
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
-              <h2>{selectedRoute}</h2>
+              <h2 className="mobile-route-name">{selectedRoute}</h2>
               {report[selectedRoute].activityInfo.map((activityInfo, i) => (
                 <div key={i} className="activity-info">
-                  {activityInfo.conditions.length > 0 && <p>{activityInfo.conditions.join(', ')}</p>}
-                  <Map
-                    polylines={activityInfo.activityUrls
-                      .map((urlData) => urlData.polyline)
-                      .filter((polyline) => polyline && polyline.length > 0)}
-                    mapId={sanitizeId(selectedRoute)}
-                    activityInfo={activityInfo.activityUrls}
-                    photos={report[selectedRoute].photos}
-                    displayImages={displayImagesState[selectedRoute]}
-                    setDisplayImages={(newValue) =>
-                      setDisplayImagesState((prev) => ({ ...prev, [selectedRoute]: newValue }))
-                    }
-                  />
+                  {activityInfo.conditions.length > 0 && (
+                    <div className="description-container">
+                      <button
+                        className="description-toggle"
+                        onClick={() => toggleDescription(selectedRoute, i)}
+                      >
+                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼' : '▶'} Show Description
+                      </button>
+                      {expandedDescriptions[`${selectedRoute}-${i}`] && (
+                        <p className="route-description">{activityInfo.conditions.join(', ')}</p>
+                      )}
+                    </div>
+                  )}
                   <h4>{activityInfo.activityUrls.length} activity link{activityInfo.activityUrls.length === 1 ? '' : 's'}:</h4>
                   <ul>
                     {activityInfo.activityUrls.map((url, j) => (
@@ -361,6 +370,32 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   ))}
                 </div>
               </div>
+              <div className="mobile-map-button-container">
+                <button
+                  className="show-map-button mobile-show-map-button"
+                  onClick={() => toggleMap(selectedRoute)}
+                >
+                  {showMap[selectedRoute] ? 'Hide Map' : 'Show Map'}
+                </button>
+              </div>
+              {showMap[selectedRoute] && (
+                <div className="mobile-map-container">
+                  <Map
+                    polylines={report[selectedRoute].activityInfo.flatMap(activityInfo => 
+                      activityInfo.activityUrls
+                        .map((urlData) => urlData.polyline)
+                        .filter((polyline) => polyline && polyline.length > 0)
+                    )}
+                    mapId={sanitizeId(selectedRoute)}
+                    activityInfo={report[selectedRoute].activityInfo.flatMap(info => info.activityUrls)}
+                    photos={report[selectedRoute].photos}
+                    displayImages={displayImagesState[selectedRoute]}
+                    setDisplayImages={(newValue) =>
+                      setDisplayImagesState((prev) => ({ ...prev, [selectedRoute]: newValue }))
+                    }
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -439,7 +474,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       )}
                       {report[route].activityInfo.map((activityInfo, i) => (
                         <div key={i} className="activity-info">
-                          {activityInfo.conditions.length > 0 && <p>{activityInfo.conditions.join(', ')}</p>}
+                          {activityInfo.conditions.length > 0 && (
+                            <div className="description-container">
+                              <button
+                                className="description-toggle"
+                                onClick={() => toggleDescription(route, i)}
+                              >
+                                {expandedDescriptions[`${route}-${i}`] ? '▼' : '▶'} Show Description
+                              </button>
+                              {expandedDescriptions[`${route}-${i}`] && (
+                                <p className="route-description">{activityInfo.conditions.join(', ')}</p>
+                              )}
+                            </div>
+                          )}
                           <ul>
                             {activityInfo.activityUrls.map((url, j) => (
                               <li
