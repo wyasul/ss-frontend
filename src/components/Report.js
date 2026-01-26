@@ -79,7 +79,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           return { route, totalPhotos };
         });
 
-        routesWithPhotoCounts.sort((a, b) => b.totalPhotos - a.totalPhotos);
+        routesWithPhotoCounts.sort((a, b) => {
+          // Move '10420' to the bottom
+          if (a.route === '10420') return 1;
+          if (b.route === '10420') return -1;
+          // Otherwise sort by photo count (descending)
+          return b.totalPhotos - a.totalPhotos;
+        });
 
         const sortedProcessedReport = {};
         routesWithPhotoCounts.forEach((item) => {
