@@ -271,22 +271,22 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           </button>
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
-              <h2 className="mobile-route-name">{selectedRoute}</h2>
+              <h2>{selectedRoute}</h2>
               {report[selectedRoute].activityInfo.map((activityInfo, i) => (
                 <div key={i} className="activity-info">
-                  {activityInfo.conditions.length > 0 && (
-                    <div className="description-container">
-                      <button
-                        className="description-toggle"
-                        onClick={() => toggleDescription(selectedRoute, i)}
-                      >
-                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
-                      </button>
-                      {expandedDescriptions[`${selectedRoute}-${i}`] && (
-                        <p className="route-description">{activityInfo.conditions.join(', ')}</p>
-                      )}
-                    </div>
-                  )}
+                  {activityInfo.conditions.length > 0 && <p>{activityInfo.conditions.join(', ')}</p>}
+                  <Map
+                    polylines={activityInfo.activityUrls
+                      .map((urlData) => urlData.polyline)
+                      .filter((polyline) => polyline && polyline.length > 0)}
+                    mapId={sanitizeId(selectedRoute)}
+                    activityInfo={activityInfo.activityUrls}
+                    photos={report[selectedRoute].photos}
+                    displayImages={displayImagesState[selectedRoute]}
+                    setDisplayImages={(newValue) =>
+                      setDisplayImagesState((prev) => ({ ...prev, [selectedRoute]: newValue }))
+                    }
+                  />
                   <h4>{activityInfo.activityUrls.length} activity link{activityInfo.activityUrls.length === 1 ? '' : 's'}:</h4>
                   <ul>
                     {activityInfo.activityUrls.map((url, j) => (
@@ -311,6 +311,21 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       >
                         <a href="#" onClick={(e) => e.preventDefault()}>
                           <span>"{url.activityName}"</span>
+                          <span
+                            className="glow-emoji"
+                            role="img"
+                            aria-label={
+                              activity === "trail run"
+                                ? (j % 2 === 0 ? "man running" : "woman running")
+                                : activity === "backcountry ski"
+                                ? (j % 2 === 0 ? "skier" : "snowboarder")
+                                : activity === "mountain bike"
+                                ? (j % 2 === 0 ? "man biking" : "woman biking")
+                                : "activity"
+                            }
+                          >
+                            {emojiSets[activity] ? emojiSets[activity][j % 2] : "❓"}
+                          </span>
                         </a>
                       </li>
                     ))}
