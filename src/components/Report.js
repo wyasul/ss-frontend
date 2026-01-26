@@ -3,13 +3,6 @@ import axios from 'axios';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 
-const emojiSets = {
-  'trail run': ["🏃‍♂️", "🏃‍♀️"],
-  'backcountry ski': ["⛷️", "🏂"], // skier, snowboarder
-  'mountain bike': ["🚵‍♂️", "🚵‍♀️"], // man/woman mountain biking
-  // Add more if you have more activities
-};
-
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
@@ -495,21 +488,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                               >
                                 <a href="#" onClick={(e) => e.preventDefault()}>
                                   <span>"{url.activityName}"</span>
-                                  <span
-                                    className="glow-emoji"
-                                    role="img"
-                                    aria-label={
-                                      activity === "trail run"
-                                        ? (j % 2 === 0 ? "man running" : "woman running")
-                                        : activity === "backcountry ski"
-                                        ? (j % 2 === 0 ? "skier" : "snowboarder")
-                                        : activity === "mountain bike"
-                                        ? (j % 2 === 0 ? "man biking" : "woman biking")
-                                        : "activity"
-                                    }
-                                  >
-                                    {emojiSets[activity] ? emojiSets[activity][j % 2] : "❓"}
-                                  </span>
                                 </a>
                               </li>
                             ))}
