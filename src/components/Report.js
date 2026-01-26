@@ -280,7 +280,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               <h2>{selectedRoute}</h2>
               {report[selectedRoute].activityInfo.map((activityInfo, i) => (
                 <div key={i} className="activity-info">
-                  {activityInfo.conditions.length > 0 && <p>{activityInfo.conditions.join(', ')}</p>}
+                  {activityInfo.conditions.length > 0 && (
+                    <div className="description-container">
+                      <button
+                        className="description-toggle"
+                        onClick={() => toggleDescription(selectedRoute, i)}
+                      >
+                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
+                      </button>
+                      {expandedDescriptions[`${selectedRoute}-${i}`] && (
+                        <p className="route-description">{activityInfo.conditions.join(', ')}</p>
+                      )}
+                    </div>
+                  )}
                   <Map
                     polylines={activityInfo.activityUrls
                       .map((urlData) => urlData.polyline)
