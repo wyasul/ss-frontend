@@ -1800,6 +1800,8 @@ body, html {
     z-index: 10; /* Ensure the button stays on top */
   }
   
+    right: 0;
+    margin: 0;
   .back-button:hover {
     background-color: #cd420b;
   }
