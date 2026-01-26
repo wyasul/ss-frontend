@@ -1,0 +1,119 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #1a1a1a;
+    background-size: cover;
+    color: #ffffff;
+  }
+  
+  .login-content {
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 40px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .login-button {
+    background-color: #e94e0b;
+    color: #f6eded;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-button:hover {
+    background-color: #cd420b;
+  }
+  
+  .google-icon {
+    margin-left: 10px;
+  }
+  
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+  
+  .google-button {
+    background-color: #db4437;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .google-button:hover {
+    background-color: #c23321;
+  }
+  
+  .separator {
+    margin-top: 25px;
+    margin-bottom: 0px;
+    font-size: 0.9em;
+    color: #ddd;
+  }
+  
+  .email-auth {
+    margin-top: 0px;
+  }
+  
+  .auth-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+  }
+  
+  .auth-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .auth-button:hover {
+    background-color: #45a049;
+  }
+  
+  .toggle-signup-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: underline;
+  }
+  
+  .toggle-signup-button:hover {
+    color: #ddd;
+  }
+  
+  .error-message {
+    color: #ff4d4d;
+    margin-top: 10px;
+    font-size: 0.9em;
+  }

@@ -1,0 +1,30 @@
+.date-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+    color: #e94e0b;
+    cursor: pointer;
+    animation: bounce 2s infinite;
+  }
+  
+  .date-hint .arrow {
+    font-size: 24px;
+    line-height: 1;
+  }
+  
+  .date-hint span {
+    font-size: 14px;
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-10px);
+    }
+    60% {
+      transform: translateY(-5px);
+    }
+  } 
