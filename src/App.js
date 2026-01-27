@@ -27,9 +27,17 @@ const App = () => {
   useEffect(() => {
     if (isMobileDevice()) {
       setIsMobile(true);
-      setDate(moment().subtract(1, 'days').format("YYYY-MM-DD"));
-    } else { 
-      setDate(moment().subtract(1, 'days').format("YYYY-MM-DD"));
+    }
+    
+    // Get current time in MST
+    const nowMST = moment().tz('America/Denver');
+    const hour = nowMST.hour();
+    
+    // If it's 8pm (20:00) or later, show today, otherwise show yesterday
+    if (hour >= 20) {
+      setDate(nowMST.format("YYYY-MM-DD"));
+    } else {
+      setDate(nowMST.subtract(1, 'days').format("YYYY-MM-DD"));
     }
   }, []);
 
