@@ -36,7 +36,7 @@ const App = () => {
     // If it's 8pm (20:00) or later, show today, otherwise show yesterday
     if (hour >= 20) {
       setDate(nowMST.format("YYYY-MM-DD"));
-    } else {
+    } else { 
       setDate(nowMST.subtract(1, 'days').format("YYYY-MM-DD"));
     }
   }, []);

@@ -9,8 +9,27 @@ const emojiSets = {
   'mountain bike': ["🚵‍♂️", "🚵‍♀️"],
 };
 
+// Exclude empty, undefined, or invalid activity descriptions
+const getValidConditions = (conditions) => {
+  if (!Array.isArray(conditions)) return [];
+  const isInvalid = (s) => {
+    if (!s || s === 'undefined') return true;
+    // block of only "1: undefined, 2: undefined, ..." or similar
+    if (/^(?:\d+:\s*undefined\s*[;,]\s*)*\d*:\s*undefined\s*[;,]?\s*$/i.test(s)) return true;
+    return false;
+  };
+  return conditions
+    .map((c) => {
+      if (c == null) return '';
+      if (typeof c === 'object') return String(c.description ?? c.text ?? c.name ?? '').trim();
+      return String(c).trim();
+    })
+    .filter((s) => !isInvalid(s));
+};
+
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
   const [report, setReport] = useState(null);
+  const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
   const [error, setError] = useState(null);
   const [displayImagesState, setDisplayImagesState] = useState({});
   const [selectedRoute, setSelectedRoute] = useState(null);
@@ -32,6 +51,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         const response = await axios.get(`${apiBaseUrl}/api/report/${place}/${activity}?date=${date}`);
         if (response.data === 'No activities yet today.') {
           setReport(null);
+          setReportOrder([]);
           setError('No activities from this date.');
           return;
         }
@@ -79,20 +99,26 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           return { route, totalPhotos };
         });
 
+        const ROUTE_10420 = '10420';
         routesWithPhotoCounts.sort((a, b) => {
-          // Move '10420' to the bottom
-          if (a.route === '10420') return 1;
-          if (b.route === '10420') return -1;
-          // Otherwise sort by photo count (descending)
-          return b.totalPhotos - a.totalPhotos;
+          // Move 10420 to the bottom (API may return route as number or string)
+          if (String(a.route) === ROUTE_10420) return 1;
+          if (String(b.route) === ROUTE_10420) return -1;
+          // Sort by photo count: most photos first, then least
+          const aPhotos = a.totalPhotos ?? 0;
+          const bPhotos = b.totalPhotos ?? 0;
+          return bPhotos - aPhotos;
         });
 
         const sortedProcessedReport = {};
+        const order = [];
         routesWithPhotoCounts.forEach((item) => {
           sortedProcessedReport[item.route] = processedReport[item.route];
+          order.push(item.route);
         });
 
         setReport(sortedProcessedReport);
+        setReportOrder(order);
 
         const initialDisplayImagesState = {};
         Object.keys(processedReport).forEach((route) => {
@@ -104,9 +130,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         console.log(err)
         if (date === new Date().toISOString().split('T')[0]) {
           setReport(null);
+          setReportOrder([]);
           setError('No activities yet today, check back later!');
         } else if (err.response && err.response.data && err.response.data.error === 'NoReportFound') {
           setReport(null);
+          setReportOrder([]);
           setError('No Strava records for this date');
         } else {
           setError('An error occurred while fetching the report: ' + err.message);
@@ -229,7 +257,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         </p>
         <ul>
           {report &&
-            Object.keys(report).map((routeName, index) => (
+            reportOrder.map((routeName, index) => (
               <li key={index}>
                 <div className="route-bar">
                   <a
@@ -266,7 +294,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         ))}
                       </div>
                     )}
-                    {report[routeName].activityInfo[0].conditions.length > 0 && (
+                    {getValidConditions(report[routeName].activityInfo[0].conditions).length > 0 && (
                       <div className="description-container">
                         <button
                           className="description-toggle"
@@ -275,7 +303,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                           {expandedDescriptions[`${routeName}-0`] ? '▼ Hide Description' : '▶ Show Description'}
                         </button>
                         {expandedDescriptions[`${routeName}-0`] && (
-                          <p className="route-description">{report[routeName].activityInfo[0].conditions.join(', ')}</p>
+                          <p className="route-description">{getValidConditions(report[routeName].activityInfo[0].conditions).join(', ')}</p>
                         )}
                       </div>
                     )}
@@ -296,7 +324,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               <h2>{selectedRoute}</h2>
               {report[selectedRoute].activityInfo.map((activityInfo, i) => (
                 <div key={i} className="activity-info">
-                  {activityInfo.conditions.length > 0 && (
+                  {getValidConditions(activityInfo.conditions).length > 0 && (
                     <div className="description-container">
                       <button
                         className="description-toggle"
@@ -305,7 +333,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
                       </button>
                       {expandedDescriptions[`${selectedRoute}-${i}`] && (
-                        <p className="route-description">{activityInfo.conditions.join(', ')}</p>
+                        <p className="route-description">{getValidConditions(activityInfo.conditions).join(', ')}</p>
                       )}
                     </div>
                   )}
@@ -431,9 +459,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       {!isMobile && (
         <div className="report-container">
           {report ? (
-            Object.keys(report).length > 0 ? (
+            reportOrder.length > 0 ? (
               <div className="report-content">
-                {Object.keys(report).map((route, index) => (
+                {reportOrder.map((route, index) => (
                   <div
                     key={index}
                     id={route}
@@ -501,7 +529,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       )}
                       {report[route].activityInfo.map((activityInfo, i) => (
                         <div key={i} className="activity-info">
-                          {activityInfo.conditions.length > 0 && (
+                          {getValidConditions(activityInfo.conditions).length > 0 && (
                             <div className="description-container">
                               <button
                                 className="description-toggle"
@@ -510,7 +538,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                                 {expandedDescriptions[`${route}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
                               </button>
                               {expandedDescriptions[`${route}-${i}`] && (
-                                <p className="route-description">{activityInfo.conditions.join(', ')}</p>
+                                <p className="route-description">{getValidConditions(activityInfo.conditions).join(', ')}</p>
                               )}
                             </div>
                           )}
