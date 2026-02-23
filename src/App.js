@@ -13,7 +13,7 @@ inject();
 
 const App = () => {
   const [activity, setActivity] = useState("backcountry ski");
-  const [place, setPlace] = useState("Salt Lake City, UT");
+  const [place, setPlace] = useState("Jackson, WY");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -231,7 +231,7 @@ const App = () => {
                 onChange={(e) => setActivity(e.target.value)}
                 disabled={loading}
               />
-              <label htmlFor="trail run">Trail Running</label>
+              <label htmlFor="trail-run">Trail Running <span className="activity-inactive-label">not active</span></label>
             </div>
             <div className="radio-option">
               <input

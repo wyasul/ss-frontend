@@ -398,6 +398,14 @@ body, html {
     transform: scale(1.1);
   }
 
+  .activity-inactive-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin-left: 4px;
+  }
+
   .radio-option label {
     font-size: 15px;
     font-weight: 500;
@@ -1210,6 +1218,87 @@ body, html {
     flex-direction: column;
     align-items: center;
   }
+
+  .help-buttons-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .rate-limit-help-button {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .rate-limit-help-button:hover {
+    background: rgba(0, 0, 0, 0.55);
+    color: #f16f0b;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .rate-limit-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .rate-limit-modal-content {
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+    padding: 24px;
+    background: #232323;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  .rate-limit-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.7);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  .rate-limit-modal-close:hover {
+    color: #f16f0b;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .rate-limit-modal-title {
+    margin: 0 0 12px 0;
+    font-size: 1.15rem;
+    color: #f16f0b;
+  }
+  .rate-limit-modal-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88);
+  }
   
   h4 {
     font-size: 18px;
@@ -1381,6 +1470,23 @@ body, html {
   
   /* Mobile-specific styles - Consolidated */
   @media (max-width: 768px) {
+    .help-buttons-container {
+      top: 10px;
+      right: 10px;
+      gap: 6px;
+    }
+    .rate-limit-help-button {
+      padding: 6px 10px;
+      font-size: 11px;
+      white-space: normal;
+      text-align: right;
+      max-width: 160px;
+    }
+    .rate-limit-modal-content {
+      max-width: 100%;
+      margin: 10px;
+    }
+
     /* Body and base styles */
     body {
       overflow: auto;

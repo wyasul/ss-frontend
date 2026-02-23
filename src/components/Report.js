@@ -35,6 +35,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [showMap, setShowMap] = useState({}); // State to track map visibility
   const [expandedDescriptions, setExpandedDescriptions] = useState({}); // State to track expanded descriptions
+  const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const routeRefs = useRef({});
   console.log(place)
 
@@ -244,6 +246,68 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   return (
     <div className="content-container">
+      <div className="help-buttons-container">
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowHowItWorks(true)}
+        >
+          How does it work?
+        </button>
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowRateLimitInfo(true)}
+        >
+          Not seeing the activities you expected?
+        </button>
+      </div>
+      {showHowItWorks && (
+        <div
+          className="rate-limit-modal-overlay"
+          onClick={() => setShowHowItWorks(false)}
+          role="dialog"
+          aria-label="How it works"
+        >
+          <div className="rate-limit-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="rate-limit-modal-close"
+              onClick={() => setShowHowItWorks(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="rate-limit-modal-title">How does it work?</h3>
+            <p className="rate-limit-modal-text">
+              Pick a place (e.g. Jackson, WY), activity type (e.g. backcountry ski), and date. We fetch Strava activities for that day and show you routes with photos and maps. Routes are ordered by how many photos they have. Strava limits how much data we can request, so sometimes not every activity will show up.
+            </p>
+          </div>
+        </div>
+      )}
+      {showRateLimitInfo && (
+        <div
+          className="rate-limit-modal-overlay"
+          onClick={() => setShowRateLimitInfo(false)}
+          role="dialog"
+          aria-label="Rate limit info"
+        >
+          <div className="rate-limit-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="rate-limit-modal-close"
+              onClick={() => setShowRateLimitInfo(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="rate-limit-modal-title">About missing activities</h3>
+            <p className="rate-limit-modal-text">
+              Strava applies rate limits to web scraping and API access. If you can’t find your activity or an activity you expected on a given day, it may be because of these limits. We only fetch a limited amount of data per request, so some activities might not appear even though they exist on Strava.
+            </p>
+          </div>
+        </div>
+      )}
       <div className={`navbar${(isMobile && selectedRoute) || hideNavbar ? ' navbar-hidden' : ''}`}>
         <h1>Routes</h1>
         <p style={{ fontSize: '12px', color: '#ffffff', margin: '5px 0' }}>
