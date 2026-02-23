@@ -1471,16 +1471,24 @@ body, html {
   /* Mobile-specific styles - Consolidated */
   @media (max-width: 768px) {
     .help-buttons-container {
-      top: 10px;
-      right: 10px;
-      gap: 6px;
+      position: static;
+      top: auto;
+      right: auto;
+      margin-top: 24px;
+      margin-bottom: 20px;
+      padding: 0 10px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      align-items: stretch;
     }
     .rate-limit-help-button {
-      padding: 6px 10px;
-      font-size: 11px;
+      padding: 10px 14px;
+      font-size: 12px;
       white-space: normal;
-      text-align: right;
-      max-width: 160px;
+      text-align: center;
+      max-width: none;
+      width: 100%;
     }
     .rate-limit-modal-content {
       max-width: 100%;

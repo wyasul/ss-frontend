@@ -246,22 +246,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   return (
     <div className="content-container">
-      <div className="help-buttons-container">
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowHowItWorks(true)}
-        >
-          How does it work?
-        </button>
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowRateLimitInfo(true)}
-        >
-          Not seeing the activities you expected?
-        </button>
-      </div>
       {showHowItWorks && (
         <div
           className="rate-limit-modal-overlay"
@@ -660,6 +644,22 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         <h1>You no likey?</h1>
         <p style={{ fontWeight: 'bold' }}>Email: wyattsullivan02@gmail.com</p>
         <p style={{ fontWeight: 'bold' }}>Phone: (307) 699-2974</p>
+      </div>
+      <div className="help-buttons-container">
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowHowItWorks(true)}
+        >
+          How does it work?
+        </button>
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowRateLimitInfo(true)}
+        >
+          Not seeing the activities you expected?
+        </button>
       </div>
     </div>
   );
