@@ -1537,16 +1537,9 @@ body, html {
       margin: 10px;
     }
 
-    /* Let the window scroll on mobile so the browser hides URL bar and bottom nav */
-    html, body {
-      overflow-x: hidden;
-      overflow-y: auto;
-      height: auto;
-      min-height: 100%;
-    }
-    #root {
-      min-height: 100%;
-      height: auto;
+    /* Body and base styles */
+    body {
+      overflow: auto;
     }
     
     /* Strava logo */
@@ -1591,7 +1584,7 @@ body, html {
       margin-top: 0 !important;
     }
     
-    /* App container - don't trap scroll here so the window scrolls and browser chrome can hide */
+    /* App container */
     .app-container {
       padding: 0 !important;
       margin: 0 !important;
@@ -1599,9 +1592,6 @@ body, html {
       max-width: 100%;
       align-items: flex-start;
       padding-top: 25px !important; /* Account for disclaimer banner - moved up significantly */
-      overflow: visible;
-      height: auto;
-      min-height: 100%;
     }
     
     /* Select container wrapper */
