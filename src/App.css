@@ -1537,23 +1537,9 @@ body, html {
       margin: 10px;
     }
 
-    /* Let the window scroll so mobile browser URL bar and bottom nav can hide.
-       Only overflow/height changes; no background or panel changes. */
-    html {
-      overflow-y: auto;
-    }
+    /* Body and base styles */
     body {
-      overflow-y: auto;
-      min-height: 100%;
-      height: auto;
-    }
-    #root {
-      min-height: 100%;
-      height: auto;
-    }
-    .app-container {
-      min-height: 100%;
-      height: auto;
+      overflow: auto;
     }
     
     /* Strava logo */
