@@ -9,22 +9,14 @@ const emojiSets = {
   'mountain bike': ["🚵‍♂️", "🚵‍♀️"],
 };
 
-// Exclude empty, undefined, or invalid activity descriptions
-const getValidConditions = (conditions) => {
-  if (!Array.isArray(conditions)) return [];
-  const isInvalid = (s) => {
-    if (!s || s === 'undefined') return true;
-    // block of only "1: undefined, 2: undefined, ..." or similar
-    if (/^(?:\d+:\s*undefined\s*[;,]\s*)*\d*:\s*undefined\s*[;,]?\s*$/i.test(s)) return true;
-    return false;
-  };
-  return conditions
-    .map((c) => {
-      if (c == null) return '';
-      if (typeof c === 'object') return String(c.description ?? c.text ?? c.name ?? '').trim();
-      return String(c).trim();
-    })
-    .filter((s) => !isInvalid(s));
+// Conditions block: use data[route].routeConditions only (one LLM summary per route from backend).
+// activityInfo is only { date, activityUrls }; no per-activity conditions.
+const getRouteConditionsText = (routeData) => {
+  if (!routeData || typeof routeData !== 'object') return null;
+  const s = routeData.routeConditions;
+  if (s == null) return null;
+  const t = String(s).trim();
+  return t === '' ? null : t;
 };
 
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
@@ -34,7 +26,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [displayImagesState, setDisplayImagesState] = useState({});
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [showMap, setShowMap] = useState({}); // State to track map visibility
-  const [expandedDescriptions, setExpandedDescriptions] = useState({}); // State to track expanded descriptions
+  const [showActivityDescriptions, setShowActivityDescriptions] = useState({}); // per-route: show Strava description under each activity
   const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const routeRefs = useRef({});
@@ -58,7 +50,18 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           return;
         }
 
-        let processedReport = { ...response.data };
+        const responsePayload = response.data;
+        const report = typeof responsePayload === 'object' && responsePayload !== null ? responsePayload.report : null;
+        const routePayload =
+          typeof responsePayload === 'object' && responsePayload !== null && responsePayload.data != null
+            ? responsePayload.data
+            : responsePayload;
+        console.log('[Report] Report gathered from DB:', {
+          report: report ?? null,
+          data: routePayload,
+        });
+
+        let processedReport = { ...routePayload };
         Object.keys(processedReport).forEach((route) => {
           const activityInfo = processedReport[route].activityInfo;
           const photos = processedReport[route].photos;
@@ -232,12 +235,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }));
   };
 
-  const toggleDescription = (route, activityIndex) => {
-    const key = `${route}-${activityIndex}`;
-    setExpandedDescriptions((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  const toggleActivityDescriptions = (route) => {
+    setShowActivityDescriptions((prev) => ({ ...prev, [route]: !prev[route] }));
+  };
+
+  const getActivityDescription = (url) => {
+    if (!url || url.description == null) return null;
+    const t = String(url.description).trim();
+    return t === '' ? null : t;
   };
 
   const sanitizeId = (str) => {
@@ -300,7 +305,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             Routes populate for the day at 7:30pm
             </>
           ) : (
-            'Click a route to see people who skied it'
+            'Click a route to see who skied it'
           )}
         </p>
         <ul>
@@ -320,6 +325,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     }}
                   >
                     {routeName}
+                    <span className="route-hit-count">{report[routeName].activityInfo.flatMap((info) => info.activityUrls).length}</span>
                   </a>
                   {isMobile && (
                     <button className="more-info-button" onClick={() => setSelectedRoute(routeName)}>
@@ -342,17 +348,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         ))}
                       </div>
                     )}
-                    {getValidConditions(report[routeName].activityInfo[0].conditions).length > 0 && (
+                    {getRouteConditionsText(report[routeName]) && (
                       <div className="description-container">
-                        <button
-                          className="description-toggle"
-                          onClick={() => toggleDescription(routeName, 0)}
-                        >
-                          {expandedDescriptions[`${routeName}-0`] ? '▼ Hide Description' : '▶ Show Description'}
-                        </button>
-                        {expandedDescriptions[`${routeName}-0`] && (
-                          <p className="route-description">{getValidConditions(report[routeName].activityInfo[0].conditions).join(', ')}</p>
-                        )}
+                        <p className="route-description">AI conditions: {getRouteConditionsText(report[routeName])}</p>
                       </div>
                     )}
                   </>
@@ -370,21 +368,22 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
+              {getRouteConditionsText(report[selectedRoute]) && (
+                <div className="description-container">
+                  <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
+                </div>
+              )}
+              <div className="activity-descriptions-toggle">
+                <button
+                  type="button"
+                  className="description-toggle"
+                  onClick={() => toggleActivityDescriptions(selectedRoute)}
+                >
+                  {showActivityDescriptions[selectedRoute] ? '▼ Hide descriptions' : '▶ Show descriptions'}
+                </button>
+              </div>
               {report[selectedRoute].activityInfo.map((activityInfo, i) => (
                 <div key={i} className="activity-info">
-                  {getValidConditions(activityInfo.conditions).length > 0 && (
-                    <div className="description-container">
-                      <button
-                        className="description-toggle"
-                        onClick={() => toggleDescription(selectedRoute, i)}
-                      >
-                        {expandedDescriptions[`${selectedRoute}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
-                      </button>
-                      {expandedDescriptions[`${selectedRoute}-${i}`] && (
-                        <p className="route-description">{getValidConditions(activityInfo.conditions).join(', ')}</p>
-                      )}
-                    </div>
-                  )}
                   <Map
                     polylines={activityInfo.activityUrls
                       .map((urlData) => urlData.polyline)
@@ -437,6 +436,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                             {emojiSets[activity] ? emojiSets[activity][j % 2] : "❓"}
                           </span>
                         </a>
+                        {showActivityDescriptions[selectedRoute] && (
+                          <div className="activity-strava-description">
+                            {getActivityDescription(url) ?? <em>No description</em>}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -575,21 +579,22 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                           />
                         </div>
                       )}
+                      {getRouteConditionsText(report[route]) && (
+                        <div className="description-container">
+                          <p className="route-description">AI conditions: {getRouteConditionsText(report[route])}</p>
+                        </div>
+                      )}
+                      <div className="activity-descriptions-toggle">
+                        <button
+                          type="button"
+                          className="description-toggle"
+                          onClick={() => toggleActivityDescriptions(route)}
+                        >
+                          {showActivityDescriptions[route] ? '▼ Hide descriptions' : '▶ Show descriptions'}
+                        </button>
+                      </div>
                       {report[route].activityInfo.map((activityInfo, i) => (
                         <div key={i} className="activity-info">
-                          {getValidConditions(activityInfo.conditions).length > 0 && (
-                            <div className="description-container">
-                              <button
-                                className="description-toggle"
-                                onClick={() => toggleDescription(route, i)}
-                              >
-                                {expandedDescriptions[`${route}-${i}`] ? '▼ Hide Description' : '▶ Show Description'}
-                              </button>
-                              {expandedDescriptions[`${route}-${i}`] && (
-                                <p className="route-description">{getValidConditions(activityInfo.conditions).join(', ')}</p>
-                              )}
-                            </div>
-                          )}
                           <ul>
                             {activityInfo.activityUrls.map((url, j) => (
                               <li
@@ -614,6 +619,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                                 <a href="#" onClick={(e) => e.preventDefault()}>
                                   <span>"{url.activityName}"</span>
                                 </a>
+                                {showActivityDescriptions[route] && (
+                                  <div className="activity-strava-description">
+                                    {getActivityDescription(url) ?? <em>No description</em>}
+                                  </div>
+                                )}
                               </li>
                             ))}
                           </ul>

@@ -235,6 +235,10 @@ body, html {
     overflow-x: auto;
     white-space: nowrap;
     padding: 10px 0;
+    gap: 10px;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 10px;
+    -webkit-overflow-scrolling: touch;
   }
   
   .photos-slideshow::-webkit-scrollbar {
@@ -248,24 +252,30 @@ body, html {
   
   .photo-item {
     flex: 0 0 auto;
-    margin-right: 10px;
-    border-radius: 4px;
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
     position: relative;
-    transition: border 0.1s ease;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    scroll-snap-align: start;
   }
   
   .photo-item img {
-    max-height: 200px;
-    border-radius: 4px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
     cursor: pointer;
   }
   
   .photo-item:hover {
     border: 2px solid #1eff00;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
   .photo-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
   
   .expand-icon {
@@ -617,6 +627,10 @@ body, html {
     overflow-x: auto;
     white-space: nowrap;
     padding: 10px 0;
+    gap: 10px;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 10px;
+    -webkit-overflow-scrolling: touch;
   }
   
   .photos-slideshow::-webkit-scrollbar {
@@ -630,24 +644,30 @@ body, html {
   
   .photo-item {
     flex: 0 0 auto;
-    margin-right: 10px;
-    border-radius: 4px;
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
     position: relative;
-    transition: border 0.1s ease;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    scroll-snap-align: start;
   }
   
   .photo-item img {
-    max-height: 200px;
-    border-radius: 4px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
     cursor: pointer;
   }
   
   .photo-item:hover {
     border: 2px solid #1eff00;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
   .photo-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
   
   .expand-icon {
@@ -919,6 +939,10 @@ body, html {
     overflow-x: auto;
     white-space: nowrap;
     padding: 10px 0;
+    gap: 10px;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 10px;
+    -webkit-overflow-scrolling: touch;
   }
   
   .photos-slideshow::-webkit-scrollbar {
@@ -932,24 +956,30 @@ body, html {
   
   .photo-item {
     flex: 0 0 auto;
-    margin-right: 10px;
-    border-radius: 4px;
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
     position: relative;
-    transition: border 0.1s ease;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+    scroll-snap-align: start;
   }
   
   .photo-item img {
-    max-height: 200px;
-    border-radius: 4px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
     cursor: pointer;
   }
   
   .photo-item:hover {
     border: 2px solid #1eff00;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
   .photo-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
   
   .expand-icon {
@@ -1208,6 +1238,18 @@ body, html {
       0 6px 20px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.12);
     transform: translateY(-1px);
+  }
+
+  .navbar .route-hit-count {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+  }
+
+  .navbar a:hover .route-hit-count {
+    color: rgba(255, 255, 255, 0.5);
   }
   
   .content-container {
@@ -1600,14 +1642,22 @@ body, html {
     
     .navbar a {
       padding: 15px;
-      text-align: center;
+      text-align: left;
       border-bottom: 1px solid #555;
       font-size: 16px;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .navbar a:hover {
       background-color: #444;
+    }
+
+    .navbar .route-hit-count {
+      font-size: 0.9em;
     }
     
     /* Content container */
@@ -1782,7 +1832,8 @@ body, html {
     }
     
     .photo-item {
-      margin-right: 5px;
+      width: 140px;
+      height: 140px;
     }
     
     /* No reports container */
@@ -2464,6 +2515,44 @@ body, html {
       inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
     transform: translateY(-1px) !important;
   }
+  .description-container {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .description-container .route-description {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .activity-descriptions-toggle {
+    margin: 0 0 12px 0;
+  }
+  .activity-strava-description {
+    margin-top: 6px;
+    padding: 8px 0 0 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.4;
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
+    animation: descriptionReveal 0.35s ease-out;
+  }
+  @keyframes descriptionReveal {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
   .route-section > * {
       padding-left: 20px;
       padding-right: 20px;
@@ -2473,4 +2562,25 @@ body, html {
   .route-section > .mobile-map-container,
   .route-section > .activity-info {
       padding-left: 0;
+  }
+  /* Space between photos strip and conditions box; cleaner scrollbar */
+  .photos-section {
+    margin-bottom: 18px;
+  }
+  .photos-slideshow {
+    padding-bottom: 14px;
+  }
+  .photos-slideshow::-webkit-scrollbar {
+    height: 6px;
+  }
+  .photos-slideshow::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+  }
+  .photos-slideshow::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+  }
+  .photos-slideshow::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
