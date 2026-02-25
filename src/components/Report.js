@@ -16,8 +16,13 @@ const getRouteConditionsText = (routeData) => {
   const s = routeData.routeConditions;
   if (s == null) return null;
   const t = String(s).trim();
-  if (t === '' || /^n\/a$/i.test(t)) return null;
-  return t;
+  return t === '' ? null : t;
+};
+
+// Show conditions block only when we have real text (hide when value is N/A or empty).
+const shouldShowConditions = (routeData) => {
+  const t = getRouteConditionsText(routeData);
+  return t != null && t.toUpperCase() !== 'N/A';
 };
 
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
@@ -349,7 +354,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         ))}
                       </div>
                     )}
-                    {getRouteConditionsText(report[routeName]) && (
+                    {shouldShowConditions(report[routeName]) && (
                       <div className="description-container">
                         <p className="route-description">AI conditions: {getRouteConditionsText(report[routeName])}</p>
                       </div>
@@ -369,7 +374,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
-              {getRouteConditionsText(report[selectedRoute]) && (
+              {shouldShowConditions(report[selectedRoute]) && (
                 <div className="description-container">
                   <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
                 </div>
@@ -580,7 +585,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                           />
                         </div>
                       )}
-                      {getRouteConditionsText(report[route]) && (
+                      {shouldShowConditions(report[route]) && (
                         <div className="description-container">
                           <p className="route-description">AI conditions: {getRouteConditionsText(report[route])}</p>
                         </div>
