@@ -250,6 +250,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   };
 
+  // When route panel is open on mobile, lock body scroll so only the panel scrolls
+  useEffect(() => {
+    if (isMobile && selectedRoute) {
+      document.body.classList.add('route-panel-open');
+      return () => document.body.classList.remove('route-panel-open');
+    }
+  }, [isMobile, selectedRoute]);
+
   return (
     <div className="content-container">
       {showHowItWorks && (

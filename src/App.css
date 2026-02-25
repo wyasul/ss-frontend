@@ -1537,13 +1537,34 @@ body, html {
       margin: 10px;
     }
 
-    /* Let the window scroll so browser URL bar and bottom nav can hide.
-       Use 100vh so layout stays stable and background doesn't zoom. */
-    html, body {
+    /* Fixed background so it never zooms when body scrolls; body scroll allows browser bars to hide */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('./assets/background.jpg') no-repeat center center;
+      background-size: cover;
+      z-index: -1;
+    }
+    body {
+      background: transparent;
       overflow-x: hidden;
       overflow-y: auto;
       min-height: 100vh;
       height: auto;
+    }
+    html {
+      overflow-x: hidden;
+      overflow-y: auto;
+      min-height: 100vh;
+      height: auto;
+    }
+    /* When route panel is open, lock main page scroll */
+    body.route-panel-open {
+      overflow: hidden !important;
     }
     #root {
       min-height: 100vh;
@@ -1592,7 +1613,7 @@ body, html {
       margin-top: 0 !important;
     }
     
-    /* App container - allow window to scroll, don't trap scroll here */
+    /* App container - allow window to scroll so browser bars can hide */
     .app-container {
       padding: 0 !important;
       margin: 0 !important;
@@ -1864,7 +1885,7 @@ body, html {
       height: 50px;
     }
     
-    /* Report view - fixed overlay, locked to visible viewport so it's not affected by document scroll */
+    /* Report view - fixed overlay, locked to viewport; only .report-content scrolls */
     .report-view {
       position: fixed;
       top: 0;
@@ -1885,6 +1906,8 @@ body, html {
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
     }
     
     .report-view-active {
