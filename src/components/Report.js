@@ -374,6 +374,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
                 </div>
               )}
+              <div className="mobile-map-button-container">
+                <button
+                  className="show-map-button mobile-show-map-button"
+                  onClick={() => toggleMap(selectedRoute)}
+                >
+                  {showMap[selectedRoute] ? 'Hide Map' : 'Show Map'}
+                </button>
+              </div>
               <div className="activity-descriptions-toggle">
                 <button
                   type="button"
@@ -464,14 +472,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="mobile-map-button-container">
-                <button
-                  className="show-map-button mobile-show-map-button"
-                  onClick={() => toggleMap(selectedRoute)}
-                >
-                  {showMap[selectedRoute] ? 'Hide Map' : 'Show Map'}
-                </button>
               </div>
               {showMap[selectedRoute] && (
                 <div className="mobile-map-container">
