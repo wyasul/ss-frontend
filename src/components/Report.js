@@ -369,11 +369,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
-              {shouldShowConditions(report[selectedRoute]) && (
-                <div className="description-container">
-                  <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
-                </div>
-              )}
               <div className="mobile-map-button-container">
                 <button
                   className="show-map-button mobile-show-map-button"
@@ -382,6 +377,29 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   {showMap[selectedRoute] ? 'Hide Map' : 'Show Map'}
                 </button>
               </div>
+              {showMap[selectedRoute] && (
+                <div className="mobile-map-container">
+                  <Map
+                    polylines={report[selectedRoute].activityInfo.flatMap(activityInfo =>
+                      activityInfo.activityUrls
+                        .map((urlData) => urlData.polyline)
+                        .filter((polyline) => polyline && polyline.length > 0)
+                    )}
+                    mapId={sanitizeId(selectedRoute)}
+                    activityInfo={report[selectedRoute].activityInfo.flatMap(info => info.activityUrls)}
+                    photos={report[selectedRoute].photos}
+                    displayImages={displayImagesState[selectedRoute]}
+                    setDisplayImages={(newValue) =>
+                      setDisplayImagesState((prev) => ({ ...prev, [selectedRoute]: newValue }))
+                    }
+                  />
+                </div>
+              )}
+              {shouldShowConditions(report[selectedRoute]) && (
+                <div className="description-container">
+                  <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
+                </div>
+              )}
               <div className="activity-descriptions-toggle">
                 <button
                   type="button"
@@ -473,24 +491,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   ))}
                 </div>
               </div>
-              {showMap[selectedRoute] && (
-                <div className="mobile-map-container">
-                  <Map
-                    polylines={report[selectedRoute].activityInfo.flatMap(activityInfo => 
-                      activityInfo.activityUrls
-                        .map((urlData) => urlData.polyline)
-                        .filter((polyline) => polyline && polyline.length > 0)
-                    )}
-                    mapId={sanitizeId(selectedRoute)}
-                    activityInfo={report[selectedRoute].activityInfo.flatMap(info => info.activityUrls)}
-                    photos={report[selectedRoute].photos}
-                    displayImages={displayImagesState[selectedRoute]}
-                    setDisplayImages={(newValue) =>
-                      setDisplayImagesState((prev) => ({ ...prev, [selectedRoute]: newValue }))
-                    }
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
