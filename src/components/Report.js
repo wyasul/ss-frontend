@@ -9,11 +9,11 @@ const emojiSets = {
   'mountain bike': ["🚵‍♂️", "🚵‍♀️"],
 };
 
-// Conditions block: use data[route].routeConditions only (one LLM summary per route from backend).
+// Conditions block: use data[route].routeConditions (or routeCondition) from backend.
 // activityInfo is only { date, activityUrls }; no per-activity conditions.
 const getRouteConditionsText = (routeData) => {
   if (!routeData || typeof routeData !== 'object') return null;
-  const s = routeData.routeConditions;
+  const s = routeData.routeConditions ?? routeData.routeCondition;
   if (s == null) return null;
   const t = String(s).trim();
   return t === '' ? null : t;
@@ -56,16 +56,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           return;
         }
 
-        const responsePayload = response.data;
-        const report = typeof responsePayload === 'object' && responsePayload !== null ? responsePayload.report : null;
-        const routePayload =
-          typeof responsePayload === 'object' && responsePayload !== null && responsePayload.data != null
-            ? responsePayload.data
-            : responsePayload;
-        console.log('[Report] Report gathered from DB:', {
-          report: report ?? null,
-          data: routePayload,
-        });
+        // API returns { report: { _id, date, reportNumber, place, activity }, data: { [routeName]: RoutePayload } }
+        const body = response.data;
+        console.log('[Report] Payload from backend:', body);
+        const reportMeta = body?.report ?? null;
+        const routePayload = body?.data != null && typeof body.data === 'object' ? body.data : body;
 
         let processedReport = { ...routePayload };
         Object.keys(processedReport).forEach((route) => {
