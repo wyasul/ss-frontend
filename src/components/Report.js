@@ -16,7 +16,8 @@ const getRouteConditionsText = (routeData) => {
   const s = routeData.routeConditions;
   if (s == null) return null;
   const t = String(s).trim();
-  return t === '' ? null : t;
+  if (t === '' || /^n\/a$/i.test(t)) return null;
+  return t;
 };
 
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
