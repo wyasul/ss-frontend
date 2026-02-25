@@ -1537,37 +1537,22 @@ body, html {
       margin: 10px;
     }
 
-    /* Fixed background so it never zooms when body scrolls; body scroll allows browser bars to hide */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: url('./assets/background.jpg') no-repeat center center;
-      background-size: cover;
-      z-index: -1;
+    /* Let the window scroll so mobile browser URL bar and bottom nav can hide.
+       Only overflow/height changes; no background or panel changes. */
+    html {
+      overflow-y: auto;
     }
     body {
-      background: transparent;
-      overflow-x: hidden;
       overflow-y: auto;
-      min-height: 100vh;
+      min-height: 100%;
       height: auto;
-    }
-    html {
-      overflow-x: hidden;
-      overflow-y: auto;
-      min-height: 100vh;
-      height: auto;
-    }
-    /* When route panel is open, lock main page scroll */
-    body.route-panel-open {
-      overflow: hidden !important;
     }
     #root {
-      min-height: 100vh;
+      min-height: 100%;
+      height: auto;
+    }
+    .app-container {
+      min-height: 100%;
       height: auto;
     }
     
@@ -1613,7 +1598,7 @@ body, html {
       margin-top: 0 !important;
     }
     
-    /* App container - allow window to scroll so browser bars can hide */
+    /* App container */
     .app-container {
       padding: 0 !important;
       margin: 0 !important;
@@ -1621,9 +1606,6 @@ body, html {
       max-width: 100%;
       align-items: flex-start;
       padding-top: 25px !important; /* Account for disclaimer banner - moved up significantly */
-      overflow: visible;
-      min-height: 100vh;
-      height: auto;
     }
     
     /* Select container wrapper */
@@ -1885,7 +1867,7 @@ body, html {
       height: 50px;
     }
     
-    /* Report view - fixed overlay, locked to viewport; only .report-content scrolls */
+    /* Report view - fixed positioning */
     .report-view {
       position: fixed;
       top: 0;
@@ -1894,8 +1876,6 @@ body, html {
       bottom: 0;
       width: 100%;
       height: 100%;
-      height: 100dvh;
-      max-height: 100dvh;
       background-color: #2c2c2c;
       color: white;
       padding: 60px 20px 20px 20px;
@@ -1903,23 +1883,13 @@ body, html {
       z-index: 100;
       transition: transform 0.3s ease;
       transform: translateX(100%);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
     
     .report-view-active {
       transform: translateX(0) !important;
-    }
-    
-    .report-view .report-content {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
     }
     
     /* Top right text */
