@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 
@@ -51,13 +52,29 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [showActivityDescriptions, setShowActivityDescriptions] = useState({}); // per-route: show Strava description under each activity
   const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
   const routeRefs = useRef({});
   console.log(place)
+
+  useEffect(() => {
+    if (!expandedPhotoSrc) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setExpandedPhotoSrc(null);
+    };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [expandedPhotoSrc]);
 
   useEffect(() => {
     if (!date) return;
     
     const fetchReport = async () => {
+      setExpandedPhotoSrc(null);
       setLoading(true);
       setError(null);
       try {
@@ -299,6 +316,71 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   };
 
+  const renderPhotoTileSimple = (photo, k) => (
+    <div key={k} className="photo-item">
+      <button
+        type="button"
+        className="expand-icon"
+        aria-label="Expand photo"
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpandedPhotoSrc(photo.photo);
+        }}
+      >
+        <FiMaximize2 size={16} aria-hidden />
+      </button>
+      <img
+        src={photo.photo}
+        alt={`Photo ${k + 1}`}
+        loading="lazy"
+        onClick={() => handleLinkClick(photo.activityUrl)}
+      />
+    </div>
+  );
+
+  const renderPhotoTileWithMap = (photo, k, route) => (
+    <div
+      key={k}
+      className="photo-item"
+      onMouseEnter={() => {
+        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
+        if (mapElement) {
+          const event = new CustomEvent(`mouseenter-photo-${sanitizeId(route)}-${k}`, {
+            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
+          });
+          mapElement.dispatchEvent(event);
+        }
+      }}
+      onMouseLeave={() => {
+        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
+        if (mapElement) {
+          const event = new CustomEvent(`mouseleave-photo-${sanitizeId(route)}-${k}`, {
+            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
+          });
+          mapElement.dispatchEvent(event);
+        }
+      }}
+    >
+      <button
+        type="button"
+        className="expand-icon"
+        aria-label="Expand photo"
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpandedPhotoSrc(photo.photo);
+        }}
+      >
+        <FiMaximize2 size={16} aria-hidden />
+      </button>
+      <img
+        src={photo.photo}
+        alt={`Photo ${k + 1}`}
+        loading="lazy"
+        onClick={() => handleLinkClick(photo.activityUrl)}
+      />
+    </div>
+  );
+
   return (
     <div className="content-container">
       {showHowItWorks && (
@@ -387,15 +469,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   <>
                     {report[routeName].photos.length > 0 && (
                       <div className="photos-slideshow">
-                        {report[routeName].photos.map((photo, k) => (
-                          <div
-                            key={k}
-                            className="photo-item"
-                            onClick={() => handleLinkClick(photo.activityUrl)}
-                          >
-                            <img src={photo.photo} alt={`Photo ${k + 1}`} loading="lazy" />
-                          </div>
-                        ))}
+                        {report[routeName].photos.map((photo, k) => renderPhotoTileSimple(photo, k))}
                       </div>
                     )}
                     {shouldShowConditions(report[routeName]) && (
@@ -511,33 +585,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               ))}
               <div className="photos-section">
                 <div className="photos-slideshow">
-                  {report[selectedRoute].photos.map((photo, k) => (
-                    <div
-                      key={k}
-                      className="photo-item"
-                      onClick={() => handleLinkClick(photo.activityUrl)}
-                      onMouseEnter={() => {
-                        const mapElement = document.querySelector(`#map-${sanitizeId(selectedRoute)}`);
-                        if (mapElement) {
-                          const event = new CustomEvent(`mouseenter-photo-${sanitizeId(selectedRoute)}-${k}`, {
-                            detail: { photo, mapId: sanitizeId(selectedRoute), polylineIndex: photo.polylineIndex, photoIndex: k },
-                          });
-                          mapElement.dispatchEvent(event);
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        const mapElement = document.querySelector(`#map-${sanitizeId(selectedRoute)}`);
-                        if (mapElement) {
-                          const event = new CustomEvent(`mouseleave-photo-${sanitizeId(selectedRoute)}-${k}`, {
-                            detail: { photo, mapId: sanitizeId(selectedRoute), polylineIndex: photo.polylineIndex, photoIndex: k },
-                          });
-                          mapElement.dispatchEvent(event);
-                        }
-                      }}
-                    >
-                      <img src={photo.photo} alt={`Photo ${k + 1}`} loading="lazy" />
-                    </div>
-                  ))}
+                  {report[selectedRoute].photos.map((photo, k) => renderPhotoTileWithMap(photo, k, selectedRoute))}
                 </div>
               </div>
             </div>
@@ -566,33 +614,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     </div>
                     <div className="photos-section">
                       <div className="photos-slideshow">
-                        {report[route].photos.map((photo, k) => (
-                          <div
-                            key={k}
-                            className="photo-item"
-                            onClick={() => handleLinkClick(photo.activityUrl)}
-                            onMouseEnter={() => {
-                              const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
-                              if (mapElement) {
-                                const event = new CustomEvent(`mouseenter-photo-${sanitizeId(route)}-${k}`, {
-                                  detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
-                                });
-                                mapElement.dispatchEvent(event);
-                              }
-                            }}
-                            onMouseLeave={() => {
-                              const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
-                              if (mapElement) {
-                                const event = new CustomEvent(`mouseleave-photo-${sanitizeId(route)}-${k}`, {
-                                  detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
-                                });
-                                mapElement.dispatchEvent(event);
-                              }
-                            }}
-                          >
-                            <img src={photo.photo} alt={`Photo ${k + 1}`} loading="lazy" />
-                          </div>
-                        ))}
+                        {report[route].photos.map((photo, k) => renderPhotoTileWithMap(photo, k, route))}
                       </div>
                     </div>
                     <div className="activities-container">
@@ -700,6 +722,33 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           Not seeing the activities you expected?
         </button>
       </div>
+      {expandedPhotoSrc && (
+        <div
+          className="photo-lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded photo"
+          onClick={() => setExpandedPhotoSrc(null)}
+        >
+          <button
+            type="button"
+            className="photo-lightbox-close"
+            aria-label="Close expanded photo"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpandedPhotoSrc(null);
+            }}
+          >
+            ×
+          </button>
+          <img
+            src={expandedPhotoSrc}
+            alt=""
+            className="photo-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
