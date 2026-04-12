@@ -25,6 +25,22 @@ const shouldShowConditions = (routeData) => {
   return t != null && t.toUpperCase() !== 'N/A';
 };
 
+const reportHasActivityData = (report, reportOrder) => {
+  if (!report || typeof report !== 'object' || !Array.isArray(reportOrder)) return false;
+  return reportOrder.some((routeName) => {
+    const r = report[routeName];
+    if (!r || typeof r !== 'object') return false;
+    const urlCount = Array.isArray(r.activityInfo)
+      ? r.activityInfo.reduce(
+          (n, info) => n + (Array.isArray(info?.activityUrls) ? info.activityUrls.length : 0),
+          0
+        )
+      : 0;
+    const photoCount = Array.isArray(r.photos) ? r.photos.length : 0;
+    return urlCount > 0 || photoCount > 0;
+  });
+};
+
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
@@ -50,9 +66,10 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
         const response = await axios.get(`${apiBaseUrl}/api/report/${place}/${activity}?date=${date}`);
         if (response.data === 'No activities yet today.') {
-          setReport(null);
+          setReport({});
           setReportOrder([]);
-          setError('No activities from this date.');
+          setDisplayImagesState({});
+          setError(null);
           return;
         }
 
@@ -64,12 +81,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
         let processedReport = { ...routePayload };
         Object.keys(processedReport).forEach((route) => {
-          const activityInfo = processedReport[route].activityInfo;
-          const photos = processedReport[route].photos;
+          const routeData = processedReport[route];
+          if (!routeData || typeof routeData !== 'object') {
+            processedReport[route] = { activityInfo: [], photos: [] };
+            return;
+          }
+
+          const activityInfo = Array.isArray(routeData.activityInfo) ? routeData.activityInfo : [];
+          const photos = Array.isArray(routeData.photos) ? routeData.photos : [];
           let polylineIndex = 0;
 
-          activityInfo.forEach((activity, activityIndex) => {
-            activity.activityUrls.forEach((activityUrl) => {
+          activityInfo.forEach((act, activityIndex) => {
+            const activityUrls = Array.isArray(act?.activityUrls) ? act.activityUrls : [];
+            activityUrls.forEach((activityUrl) => {
               activityUrl.polylineIndex = polylineIndex;
               polylineIndex++;
 
@@ -90,18 +114,26 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           });
 
           photos.forEach((photo) => {
-            const matchingActivityUrl = activityInfo.flatMap((info) => info.activityUrls).find((url) => url.url === photo.activityUrl);
+            const matchingActivityUrl = activityInfo
+              .flatMap((info) => (Array.isArray(info?.activityUrls) ? info.activityUrls : []))
+              .find((url) => url.url === photo.activityUrl);
             if (matchingActivityUrl) {
               photo.polylineIndex = matchingActivityUrl.polylineIndex;
             }
           });
 
-          processedReport[route].activityInfo = activityInfo;
+          processedReport[route].activityInfo = activityInfo
+            .filter((info) => info != null && typeof info === 'object')
+            .map((info) => ({
+              ...info,
+              activityUrls: Array.isArray(info.activityUrls) ? info.activityUrls : [],
+            }));
           processedReport[route].photos = photos;
         });
 
         const routesWithPhotoCounts = Object.keys(processedReport).map((route) => {
-          const totalPhotos = processedReport[route].photos.length;
+          const ph = processedReport[route]?.photos;
+          const totalPhotos = Array.isArray(ph) ? ph.length : 0;
           return { route, totalPhotos };
         });
 
@@ -139,9 +171,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           setReportOrder([]);
           setError('No activities yet today, check back later!');
         } else if (err.response && err.response.data && err.response.data.error === 'NoReportFound') {
-          setReport(null);
+          setReport({});
           setReportOrder([]);
-          setError('No Strava records for this date');
+          setError(null);
         } else {
           setError('An error occurred while fetching the report: ' + err.message);
         }
@@ -173,6 +205,23 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     return (
       <div className="no-reports-container">
         <h2 className="no-reports-message">{error}</h2>
+      </div>
+    );
+  }
+
+  if (report === null) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p className="loading-text">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!reportHasActivityData(report, reportOrder)) {
+    return (
+      <div className="no-reports-container">
+        <h2 className="no-reports-message">No activities for this date.</h2>
       </div>
     );
   }
@@ -498,9 +547,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
       {!isMobile && (
         <div className="report-container">
-          {report ? (
-            reportOrder.length > 0 ? (
-              <div className="report-content">
+          <div className="report-content">
                 {reportOrder.map((route, index) => (
                   <div
                     key={index}
@@ -620,13 +667,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     </div>
                   </div>
                 ))}
-              </div>
-            ) : (
-              <p>No report available</p>
-            )
-          ) : (
-            <p>Loading...</p>
-          )}
+          </div>
         </div>
       )}
       {/* Contact Info Section */}

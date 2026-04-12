@@ -231,7 +231,7 @@ const App = () => {
                 onChange={(e) => setActivity(e.target.value)}
                 disabled={loading}
               />
-              <label htmlFor="trail-run">Trail Running <span className="activity-inactive-label">not active</span></label>
+              <label htmlFor="trail-run">Trail Running</label>
             </div>
             <div className="radio-option">
               <input
