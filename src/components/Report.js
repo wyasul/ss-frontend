@@ -42,7 +42,10 @@ const reportHasActivityData = (report, reportOrder) => {
   });
 };
 
-const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar }) => {
+const FEATURE_REQUEST_TO =
+  process.env.REACT_APP_FEATURE_REQUEST_EMAIL || 'wyattsullivan02@gmail.com';
+
+const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
   const [error, setError] = useState(null);
@@ -52,6 +55,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [showActivityDescriptions, setShowActivityDescriptions] = useState({}); // per-route: show Strava description under each activity
   const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
+  const [featureRequestText, setFeatureRequestText] = useState('');
+  const [featureRequestSending, setFeatureRequestSending] = useState(false);
+  const [featureRequestSent, setFeatureRequestSent] = useState(false);
+  const [featureRequestError, setFeatureRequestError] = useState(null);
   const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
   const routeRefs = useRef({});
   console.log(place)
@@ -69,6 +77,15 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       document.body.style.overflow = prevOverflow;
     };
   }, [expandedPhotoSrc]);
+
+  useEffect(() => {
+    if (!showFeatureRequest) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setShowFeatureRequest(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showFeatureRequest]);
 
   useEffect(() => {
     if (!date) return;
@@ -284,6 +301,68 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }
   };
 
+  const openFeatureRequestModal = () => {
+    setFeatureRequestText('');
+    setFeatureRequestError(null);
+    setFeatureRequestSent(false);
+    setShowFeatureRequest(true);
+  };
+
+  const sendFeatureRequest = async () => {
+    const text = featureRequestText.trim();
+    if (!text) return;
+    setFeatureRequestSending(true);
+    setFeatureRequestError(null);
+    try {
+      const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(FEATURE_REQUEST_TO)}`;
+      const message = [
+        text,
+        '',
+        '---',
+        `Place: ${place}`,
+        `Activity: ${activity}`,
+        `Date: ${date}`,
+        submitterEmail ? `Account: ${submitterEmail}` : 'Account: (no email on file)',
+      ].join('\n');
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          _subject: 'Routes app — feature request',
+          _captcha: 'false',
+          ...(submitterEmail ? { _replyto: submitterEmail } : {}),
+          message,
+        }),
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      if (!res.ok) {
+        throw new Error(
+          typeof data.message === 'string' ? data.message : `Could not send (${res.status})`
+        );
+      }
+      if (data.error) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Form submit rejected the request');
+      }
+      setFeatureRequestSent(true);
+      setFeatureRequestText('');
+    } catch (err) {
+      setFeatureRequestError(
+        err?.message ||
+          'Could not send from the browser. Use the link below to email your idea, or try again later.'
+      );
+    } finally {
+      setFeatureRequestSending(false);
+    }
+  };
+
   let displayActivity = activity;
   if (activity === 'trail run') {
     displayActivity = 'Trail Running';
@@ -426,6 +505,91 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             <p className="rate-limit-modal-text">
               Strava applies rate limits to web scraping and API access. If you can’t find your activity or an activity you expected on a given day, it may be because of these limits. We only fetch a limited amount of data per request, so some activities might not appear even though they exist on Strava.
             </p>
+          </div>
+        </div>
+      )}
+      {showFeatureRequest && (
+        <div
+          className="rate-limit-modal-overlay"
+          onClick={() => !featureRequestSending && setShowFeatureRequest(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Feature request"
+        >
+          <div
+            className="rate-limit-modal-content feature-request-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="rate-limit-modal-close"
+              disabled={featureRequestSending}
+              onClick={() => setShowFeatureRequest(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="rate-limit-modal-title">Feature request</h3>
+            {featureRequestSent ? (
+              <p className="rate-limit-modal-text">Thanks — your idea was sent.</p>
+            ) : (
+              <>
+                <p className="rate-limit-modal-text feature-request-intro">
+                  What would you like to see improved or added?
+                </p>
+                <textarea
+                  className="feature-request-textarea"
+                  value={featureRequestText}
+                  onChange={(e) => setFeatureRequestText(e.target.value)}
+                  placeholder="Describe your feature request…"
+                  rows={5}
+                  disabled={featureRequestSending}
+                  maxLength={4000}
+                />
+                {featureRequestError && (
+                  <p className="feature-request-error" role="alert">
+                    {featureRequestError}{' '}
+                    <a
+                      className="feature-request-mailto"
+                      href={`mailto:${FEATURE_REQUEST_TO}?subject=${encodeURIComponent('Routes app — feature request')}&body=${encodeURIComponent(
+                        `${featureRequestText.trim()}\n\n---\nPlace: ${place}\nActivity: ${activity}\nDate: ${date}${submitterEmail ? `\nAccount: ${submitterEmail}` : ''}`
+                      )}`}
+                    >
+                      Open in email app
+                    </a>
+                  </p>
+                )}
+                <div className="feature-request-actions">
+                  <button
+                    type="button"
+                    className="feature-request-cancel"
+                    disabled={featureRequestSending}
+                    onClick={() => setShowFeatureRequest(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="feature-request-send"
+                    disabled={featureRequestSending || !featureRequestText.trim()}
+                    onClick={sendFeatureRequest}
+                  >
+                    {featureRequestSending ? 'Sending…' : 'Send'}
+                  </button>
+                </div>
+              </>
+            )}
+            {featureRequestSent && (
+              <div className="feature-request-actions">
+                <button
+                  type="button"
+                  className="feature-request-send"
+                  onClick={() => setShowFeatureRequest(false)}
+                >
+                  Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -720,6 +884,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           onClick={() => setShowRateLimitInfo(true)}
         >
           Not seeing the activities you expected?
+        </button>
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={openFeatureRequestModal}
+        >
+          Feature request?
         </button>
       </div>
       {expandedPhotoSrc && (

@@ -1351,6 +1351,106 @@ body, html {
     line-height: 1.5;
     color: rgba(255, 255, 255, 0.88);
   }
+
+  .feature-request-modal-content {
+    max-width: 480px;
+  }
+
+  .feature-request-intro {
+    margin-bottom: 12px;
+  }
+
+  .feature-request-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 120px;
+    margin: 0;
+    padding: 12px;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .feature-request-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .feature-request-textarea:focus {
+    outline: none;
+    border-color: #f16f0b;
+    box-shadow: 0 0 0 2px rgba(241, 111, 11, 0.25);
+  }
+
+  .feature-request-textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .feature-request-error {
+    margin: 12px 0 0 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #ff8a80;
+  }
+
+  .feature-request-mailto {
+    color: #ffb74d;
+    text-decoration: underline;
+  }
+
+  .feature-request-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: flex-end;
+  }
+
+  .feature-request-cancel {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .feature-request-cancel:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.45);
+    color: #fff;
+  }
+
+  .feature-request-cancel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .feature-request-send {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111;
+    background: #f16f0b;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .feature-request-send:hover:not(:disabled) {
+    background: #ff8534;
+  }
+
+  .feature-request-send:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
   
   h4 {
     font-size: 18px;

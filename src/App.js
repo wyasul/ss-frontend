@@ -298,6 +298,7 @@ const App = () => {
         loading={loading}
         isMobile={isMobile}
         hideNavbar={showHelpModal}
+        submitterEmail={user?.email ?? null}
       />
     </div>
   );
