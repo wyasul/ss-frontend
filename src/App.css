@@ -1647,9 +1647,12 @@ body, html {
       margin: 10px;
     }
 
-    /* Body and base styles */
-    body {
-      overflow: auto;
+    /* Let the page scroll natively so mobile browsers auto-hide their chrome */
+    html, body, #root {
+      height: auto;
+      min-height: 100%;
+      overflow: visible;
+      overflow-x: hidden;
     }
     
     /* Strava logo */
@@ -1694,14 +1697,16 @@ body, html {
       margin-top: 0 !important;
     }
     
-    /* App container */
+    /* App container — native body scroll drives browser chrome hide */
     .app-container {
       padding: 0 !important;
       margin: 0 !important;
       width: 100%;
       max-width: 100%;
       align-items: flex-start;
-      padding-top: 25px !important; /* Account for disclaimer banner - moved up significantly */
+      padding-top: 25px !important;
+      height: auto;
+      overflow-y: visible;
     }
     
     /* Select container wrapper */
