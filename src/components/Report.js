@@ -62,7 +62,20 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [featureRequestError, setFeatureRequestError] = useState(null);
   const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
   const routeRefs = useRef({});
+  const reportViewRef = useRef(null);
   console.log(place)
+
+  useEffect(() => {
+    if (!isMobile || !selectedRoute) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    if (reportViewRef.current) {
+      reportViewRef.current.scrollTop = 0;
+    }
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobile, selectedRoute]);
 
   useEffect(() => {
     if (!expandedPhotoSrc) return undefined;
@@ -649,7 +662,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       </div>
 
       {isMobile && selectedRoute && (
-        <div className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>
+        <div ref={reportViewRef} className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>
           <button className="back-button" onClick={() => setSelectedRoute(null)}>
             {"Back to routes"}
           </button>
