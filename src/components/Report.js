@@ -45,6 +45,10 @@ const reportHasActivityData = (report, reportOrder) => {
 const FEATURE_REQUEST_TO =
   process.env.REACT_APP_FEATURE_REQUEST_EMAIL || 'wyattsullivan02@gmail.com';
 
+/** Inclusive YYYY-MM-DD range (string compare is valid for ISO dates). */
+const isSiteMaintenanceWindow2026 = (dateStr) =>
+  dateStr >= '2026-04-22' && dateStr <= '2026-04-26';
+
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
@@ -266,9 +270,12 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   }
 
   if (!reportHasActivityData(report, reportOrder)) {
+    const emptyMessage = isSiteMaintenanceWindow2026(date)
+      ? 'Site was down for maintenance'
+      : 'No activities for this date.';
     return (
       <div className="no-reports-container">
-        <h2 className="no-reports-message">No activities for this date.</h2>
+        <h2 className="no-reports-message">{emptyMessage}</h2>
       </div>
     );
   }
