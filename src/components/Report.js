@@ -49,6 +49,14 @@ const FEATURE_REQUEST_TO =
 const isSiteMaintenanceWindow2026 = (dateStr) =>
   dateStr >= '2026-04-22' && dateStr <= '2026-04-26';
 
+const getTodayLocalYYYYMMDD = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
@@ -270,9 +278,12 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   }
 
   if (!reportHasActivityData(report, reportOrder)) {
+    const todayStr = getTodayLocalYYYYMMDD();
     const emptyMessage = isSiteMaintenanceWindow2026(date)
       ? 'Site was down for maintenance'
-      : 'No activities for this date.';
+      : date < todayStr
+        ? 'This selection is undergoing maintenance'
+        : 'No activities for this date.';
     return (
       <div className="no-reports-container">
         <h2 className="no-reports-message">{emptyMessage}</h2>
