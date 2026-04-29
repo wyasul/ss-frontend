@@ -414,6 +414,42 @@ body, html {
     transform: scale(1.1);
   }
 
+  .radio-option.radio-option-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .radio-option.radio-option-disabled:hover {
+    background: transparent;
+    transform: none;
+  }
+
+  .radio-option.radio-option-disabled label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+  }
+
+  .radio-option.radio-option-disabled input[type="radio"] {
+    cursor: not-allowed;
+  }
+
+  .radio-option-title {
+    line-height: 1.1;
+  }
+
+  .radio-option-note {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(200, 200, 200, 0.9);
+    letter-spacing: 0.2px;
+  }
+
   .radio-option label {
     font-size: 15px;
     font-weight: 500;
@@ -2517,41 +2553,52 @@ body, html {
   
   .help-me-out-btn {
     display: block;
-    margin: 24px auto 0 auto;
-    background: #ff6b00;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 16px 32px;
-    font-weight: bold;
-    font-size: 1.25rem;
+    margin: 12px auto 0 auto;
+    background: rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 107, 0, 0.55);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 0.98rem;
     cursor: pointer;
-    box-shadow: 0 0 0 4px #ffb366, 0 4px 24px 0 #ff6b00cc;
-    transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
-    animation: pulse-btn 1.2s alternate 2;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 8px #ffb366;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    letter-spacing: 0.2px;
+    text-shadow: none;
+  }
+
+  .help-cta-button {
+    margin: 8px auto 12px auto;
+    max-width: min(680px, calc(100% - 40px));
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(50px) saturate(200%);
+    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, 0.4),
+      0 0 0 0.5px rgba(255, 255, 255, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   }
   
   .help-me-out-btn:hover,
   .help-me-out-btn:focus {
-    background: #ff8c1a;
-    color: #fffbe6;
-    box-shadow: 0 0 0 16px #ffb36655, 0 8px 32px 0 #ff6b00cc;
+    background: rgba(0, 0, 0, 0.48);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+      0 16px 48px rgba(0, 0, 0, 0.5),
+      0 0 0 0.5px rgba(255, 255, 255, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3);
     outline: none;
-    transform: scale(1.08);
-  }
-  
-  
-  @keyframes pulse-btn {
-    0% {
-      transform: scale(1);
-      box-shadow: 0 0 0 4px #ffb366, 0 4px 24px 0 #ff6b00cc;
-    }
-    100% {
-      transform: scale(1.1);
-      box-shadow: 0 0 0 8px #ffb36655, 0 8px 32px 0 #ff6b00cc;
-    }
+    transform: translateY(-1px);
   }
   
   @media (min-width: 601px) {

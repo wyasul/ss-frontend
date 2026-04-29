@@ -23,6 +23,12 @@ const App = () => {
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [helpModalShouldShow, setHelpModalShouldShow] = useState(false);
   const [pulseDone, setPulseDone] = useState(false);
+  const [helpVideoOk, setHelpVideoOk] = useState(true);
+
+  const trailRunDisabled = true;
+  const helpVideoSrc =
+    process.env.REACT_APP_HELP_VIDEO_SRC || `${process.env.PUBLIC_URL}/help.mp4`;
+  const helpVideoFallbackMov = `${process.env.PUBLIC_URL}/help.mov`;
 
   useEffect(() => {
     if (isMobileDevice()) {
@@ -139,28 +145,35 @@ const App = () => {
               alignItems: "flex-start"
             }}>
               {/* Left column - Video */}
-              <div style={{
-                flex: window.innerWidth < 768 ? "1" : "1.5",
-                width: "100%"
-              }}>
-                <video
-                  controls
-                  width="100%"
-                  style={{
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
-                    minHeight: window.innerWidth < 768 ? "200px" : "auto",
-                    objectFit: "cover",
-                    border: window.innerWidth < 768 ? "2px solid #ff6b00" : "none"
-                  }}
-                  preload="metadata"
-                  playsInline
-                >
-                  <source src="8FFB1301-69B8-4690-863B-BFB3A791F1C7.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+              {helpVideoOk && (
+                <div style={{
+                  flex: window.innerWidth < 768 ? "1" : "1.5",
+                  width: "100%"
+                }}>
+                  <video
+                    controls
+                    width="100%"
+                    style={{
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      backgroundColor: "rgba(0, 0, 0, 0.2)",
+                      minHeight: window.innerWidth < 768 ? "200px" : "auto",
+                      objectFit: "cover",
+                      border: window.innerWidth < 768 ? "2px solid #ff6b00" : "none"
+                    }}
+                    preload="metadata"
+                    playsInline
+                    onError={() => setHelpVideoOk(false)}
+                  >
+                    <source
+                      src={helpVideoSrc}
+                      type={helpVideoSrc.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4"}
+                    />
+                    <source src={helpVideoFallbackMov} type="video/quicktime" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
               {/* Right column - Instructions */}
               <div style={{
                 flex: "1",
@@ -186,10 +199,11 @@ const App = () => {
                 }}>
                   <li>Go to strava.com on Google Chrome browser, and log in to your premium account</li>
                   <li>Right-click anywhere on the page and select "Inspect" (or press Ctrl+Shift+I)</li>
-                  <li>Click on the "Network" tab in the developer tools</li>
-                  <li>Refresh the page</li>
-                  <li>In the search box, type "strava4"</li>
-                  <li>Look for "_strava4_session" in the right panel under "Cookies"</li>
+                  <li>Click on the "Application" tab in the developer tools</li>
+                  <li>In the left panel, expand "Cookies"</li>
+                  <li>Click on "https://www.strava.com" (or "https://strava.com")</li>
+                  <li>In the cookie table, use the filter/search box and type "strava4"</li>
+                  <li>Click the "_strava4_session" row</li>
                   <li>Copy the entire cookie value</li>
                   <li>Email the cookie to{" "}
                     <a href="mailto:wyattsullivan02@gmail.com"
@@ -217,11 +231,20 @@ const App = () => {
         </div>
       )}
 
+      <button
+        type="button"
+        className="help-me-out-btn help-cta-button"
+        onClick={() => setShowHelpModal(true)}
+        disabled={loading}
+      >
+        Strava stalker is dying and needs help
+      </button>
+
       <div className="select-container-wrapper">
         <div className="radio-groups">
           <div className="radio-group">
             <div className="radio-group-label">Activity</div>
-            <div className="radio-option">
+            <div className={`radio-option${trailRunDisabled ? " radio-option-disabled" : ""}`}>
               <input
                 type="radio"
                 id="trail-run"
@@ -229,9 +252,12 @@ const App = () => {
                 value="trail run"
                 checked={activity === "trail run"}
                 onChange={(e) => setActivity(e.target.value)}
-                disabled={loading}
+                disabled={loading || trailRunDisabled}
               />
-              <label htmlFor="trail-run">Trail Running</label>
+              <label htmlFor="trail-run">
+                <span className="radio-option-title">Trail Running</span>
+                <span className="radio-option-note">not available due to rate limits</span>
+              </label>
             </div>
             <div className="radio-option">
               <input
