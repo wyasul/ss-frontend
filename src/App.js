@@ -12,7 +12,7 @@ import { inject } from '@vercel/analytics';
 inject();
 
 const App = () => {
-  const [activity, setActivity] = useState("backcountry ski");
+  const [activity, setActivity] = useState("trail run");
   const [place, setPlace] = useState("Jackson, WY");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,6 +104,8 @@ const App = () => {
   if (!user) {
     return <Login />;
   }
+
+  const isSelectedDateYesterday = date === moment().tz('America/Denver').subtract(1, 'days').format("YYYY-MM-DD");
 
   return (
     <div className="app-container">
@@ -255,7 +257,7 @@ const App = () => {
               />
               <label htmlFor="trail-run">Trail Running</label>
             </div>
-            <div className="radio-option">
+            <div className="radio-option radio-option-disabled">
               <input
                 type="radio"
                 id="backcountry-ski"
@@ -263,9 +265,12 @@ const App = () => {
                 value="backcountry ski"
                 checked={activity === "backcountry ski"}
                 onChange={(e) => setActivity(e.target.value)}
-                disabled={loading}
+                disabled
               />
-              <label htmlFor="backcountry-ski">Backcountry Skiing</label>
+              <label htmlFor="backcountry-ski">
+                <span className="radio-option-title">Backcountry Skiing</span>
+                <span className="radio-option-note">not active</span>
+              </label>
             </div>
           </div>
           <div className="radio-group">
@@ -304,6 +309,9 @@ const App = () => {
             onFocus={() => setShowDateHint(false)}
             disabled={loading}
           />
+          {isSelectedDateYesterday && (
+            <div className="date-relative-label">(yesterday)</div>
+          )}
         </div>
         {showDateHint && (
           <div className="date-hint">
