@@ -1698,6 +1698,7 @@ body, html {
       min-height: 100%;
       overflow: visible;
       overflow-x: hidden;
+      background-color: #1f1f1f;
     }
     
     /* Strava logo */
@@ -1750,8 +1751,15 @@ body, html {
       max-width: 100%;
       align-items: flex-start;
       padding-top: 25px !important;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom)) !important;
       height: auto;
+      min-height: 100vh;
+      min-height: 100svh;
       overflow-y: visible;
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.36), rgba(0, 0, 0, 0.36)),
+        url('./assets/background.jpg') no-repeat center center fixed;
+      background-size: cover;
     }
     
     /* Select container wrapper */
@@ -2000,8 +2008,13 @@ body, html {
     .no-reports-container {
       padding: 15px;
       margin-top: 80px;
+      margin-bottom: calc(28px + env(safe-area-inset-bottom));
       width: 80%;
       align-self: center;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .no-reports-message {
