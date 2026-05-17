@@ -25,7 +25,6 @@ const App = () => {
   const [pulseDone, setPulseDone] = useState(false);
   const [helpVideoOk, setHelpVideoOk] = useState(true);
 
-  const trailRunDisabled = true;
   const helpVideoSrc =
     process.env.REACT_APP_HELP_VIDEO_SRC || `${process.env.PUBLIC_URL}/help.mp4`;
   const helpVideoFallbackMov = `${process.env.PUBLIC_URL}/help.mov`;
@@ -244,7 +243,7 @@ const App = () => {
         <div className="radio-groups">
           <div className="radio-group">
             <div className="radio-group-label">Activity</div>
-            <div className={`radio-option${trailRunDisabled ? " radio-option-disabled" : ""}`}>
+            <div className="radio-option">
               <input
                 type="radio"
                 id="trail-run"
@@ -252,12 +251,9 @@ const App = () => {
                 value="trail run"
                 checked={activity === "trail run"}
                 onChange={(e) => setActivity(e.target.value)}
-                disabled={loading || trailRunDisabled}
+                disabled={loading}
               />
-              <label htmlFor="trail-run">
-                <span className="radio-option-title">Trail Running</span>
-                <span className="radio-option-note">not available due to rate limits</span>
-              </label>
+              <label htmlFor="trail-run">Trail Running</label>
             </div>
             <div className="radio-option">
               <input
