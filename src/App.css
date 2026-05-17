@@ -1756,10 +1756,6 @@ body, html {
       min-height: 100vh;
       min-height: 100svh;
       overflow-y: visible;
-      background:
-        linear-gradient(rgba(0, 0, 0, 0.36), rgba(0, 0, 0, 0.36)),
-        url('./assets/background.jpg') no-repeat center center fixed;
-      background-size: cover;
     }
     
     /* Select container wrapper */

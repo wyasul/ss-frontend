@@ -33,7 +33,7 @@ const calculateAverageBearing = (polylines) => {
   return (averageBearing + 360) % 360; // Normalize to 0-360
 };
 
-const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages }) => {
+const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages, onMapError }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]);
@@ -94,6 +94,9 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         });
       } catch (error) {
         console.error('Error initializing map:', error);
+        if (onMapError) {
+          onMapError(error);
+        }
         setMapError(`Map not displaying properly. Strava has rate limits 🤷‍♂️`);
       }
     };
@@ -105,7 +108,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         map.current = null;
       }
     };
-  }, [polylines, mapId, activityInfo]);
+  }, [polylines, mapId, activityInfo, onMapError]);
 
   useEffect(() => {
     if (map.current) {

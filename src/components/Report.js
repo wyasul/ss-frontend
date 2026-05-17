@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
@@ -49,6 +49,15 @@ const FEATURE_REQUEST_TO =
 const isSiteMaintenanceWindow2026 = (dateStr) =>
   dateStr >= '2026-04-22' && dateStr <= '2026-04-26';
 
+const BIG_MAP_ROUTE_KEY = '__big_map__';
+const BIG_MAP_MAP_ID = 'big-map';
+
+const isValidCoordinate = (point) =>
+  Array.isArray(point) &&
+  point.length >= 2 &&
+  Number.isFinite(Number(point[0])) &&
+  Number.isFinite(Number(point[1]));
+
 const getTodayLocalYYYYMMDD = () => {
   const d = new Date();
   const y = d.getFullYear();
@@ -73,9 +82,65 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [featureRequestSent, setFeatureRequestSent] = useState(false);
   const [featureRequestError, setFeatureRequestError] = useState(null);
   const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
+  const [hideBigMap, setHideBigMap] = useState(false);
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   console.log(place)
+
+  const bigMapData = useMemo(() => {
+    if (!report || !Array.isArray(reportOrder)) {
+      return { polylines: [], activityInfo: [], photos: [] };
+    }
+
+    const polylines = [];
+    const activityInfo = [];
+    const photos = [];
+
+    reportOrder.forEach((routeName) => {
+      const routeData = report[routeName];
+      const routePhotos = Array.isArray(routeData?.photos) ? routeData.photos : [];
+      const routeActivityUrls = Array.isArray(routeData?.activityInfo)
+        ? routeData.activityInfo.flatMap((info) => (Array.isArray(info?.activityUrls) ? info.activityUrls : []))
+        : [];
+
+      routeActivityUrls.forEach((urlData) => {
+        if (!Array.isArray(urlData?.polyline) || urlData.polyline.length === 0) return;
+        const validPolyline = urlData.polyline.filter(isValidCoordinate);
+        if (validPolyline.length === 0) return;
+
+        const polylineIndex = polylines.length;
+        const matchingPhotos = routePhotos
+          .filter((photo) => photo.activityUrl === urlData.url)
+          .map((photo, photoIndex) => ({
+            ...photo,
+            mapId: BIG_MAP_MAP_ID,
+            polylineIndex,
+            photoIndex,
+          }));
+
+        polylines.push(validPolyline);
+        activityInfo.push({
+          ...urlData,
+          polyline: validPolyline,
+          activityName: `${routeName}: ${urlData.activityName || 'Activity'}`,
+          photos: matchingPhotos,
+        });
+        photos.push(...matchingPhotos);
+      });
+    });
+
+    return { polylines, activityInfo, photos };
+  }, [report, reportOrder]);
+
+  useEffect(() => {
+    setHideBigMap(false);
+  }, [report]);
+
+  useEffect(() => {
+    if (hideBigMap && selectedRoute === BIG_MAP_ROUTE_KEY) {
+      setSelectedRoute(null);
+    }
+  }, [hideBigMap, selectedRoute]);
 
   useEffect(() => {
     if (!isMobile || !selectedRoute) return undefined;
@@ -676,10 +741,65 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                 )}
               </li>
             ))}
+          {report && !hideBigMap && bigMapData.polylines.length > 0 && (
+            <li>
+              <div className="route-bar">
+                <a
+                  href="#big-map"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (isMobile) {
+                      setSelectedRoute(BIG_MAP_ROUTE_KEY);
+                    } else {
+                      routeRefs.current[BIG_MAP_ROUTE_KEY]?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  Mega Map
+                  <span className="route-hit-count">{bigMapData.polylines.length}</span>
+                </a>
+                {isMobile && (
+                  <button className="more-info-button" onClick={() => setSelectedRoute(BIG_MAP_ROUTE_KEY)}>
+                    details
+                  </button>
+                )}
+              </div>
+            </li>
+          )}
         </ul>
       </div>
 
-      {isMobile && selectedRoute && (
+      {isMobile && !hideBigMap && selectedRoute === BIG_MAP_ROUTE_KEY && (
+        <div ref={reportViewRef} className="report-view report-view-active">
+          <button className="back-button" onClick={() => setSelectedRoute(null)}>
+            {"Back to routes"}
+          </button>
+          <div className="report-content">
+            <div
+              id="big-map"
+              className="route-section big-map-section"
+              ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
+            >
+              <h2>Mega Map</h2>
+              <div className="mobile-map-container">
+                <Map
+                  polylines={bigMapData.polylines}
+                  mapId={BIG_MAP_MAP_ID}
+                  activityInfo={bigMapData.activityInfo}
+                  photos={bigMapData.photos}
+                  displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
+                  setDisplayImages={(newValue) =>
+                    setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
+                  }
+                  onMapError={() => setHideBigMap(true)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isMobile && selectedRoute && selectedRoute !== BIG_MAP_ROUTE_KEY && (
         <div ref={reportViewRef} className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>
           <button className="back-button" onClick={() => setSelectedRoute(null)}>
             {"Back to routes"}
@@ -884,6 +1004,30 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     </div>
                   </div>
                 ))}
+                {!hideBigMap && bigMapData.polylines.length > 0 && (
+                  <div
+                    id="big-map"
+                    className="route-section big-map-section"
+                    ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
+                  >
+                    <div className="route-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h2>Mega Map</h2>
+                    </div>
+                    <div className="map-container">
+                      <Map
+                        polylines={bigMapData.polylines}
+                        mapId={BIG_MAP_MAP_ID}
+                        activityInfo={bigMapData.activityInfo}
+                        photos={bigMapData.photos}
+                        displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
+                        setDisplayImages={(newValue) =>
+                          setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
+                        }
+                        onMapError={() => setHideBigMap(true)}
+                      />
+                    </div>
+                  </div>
+                )}
           </div>
         </div>
       )}
