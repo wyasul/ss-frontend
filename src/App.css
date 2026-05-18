@@ -2035,6 +2035,11 @@ body, html {
       padding: 16px 12px 12px;
     }
 
+    .big-map-section > .big-map-title-group {
+      padding-left: 0;
+      padding-right: 0;
+    }
+
     .big-map-title-group {
       text-align: center;
     }
@@ -2047,6 +2052,37 @@ body, html {
     .map-wrapper--large .map-canvas {
       height: 100%;
       min-height: 0;
+    }
+
+    .mobile-map-container,
+    .mobile-map-container .map-wrapper,
+    .mobile-map-container .map-canvas,
+    .mobile-map-container .mapboxgl-map,
+    .mobile-map-container .mapboxgl-canvas-container {
+      width: 100% !important;
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+      box-sizing: border-box;
+    }
+
+    .mobile-map-container .mapboxgl-canvas {
+      left: 0 !important;
+    }
+
+    /* Bleed maps to route-section edges (cancels section horizontal padding) */
+    .route-section > .mobile-map-container {
+      margin-left: -20px;
+      margin-right: -20px;
+      width: calc(100% + 40px);
+      max-width: calc(100% + 40px);
+    }
+
+    .big-map-section > .mobile-map-container {
+      margin-left: -12px;
+      margin-right: -12px;
+      width: calc(100% + 24px);
+      max-width: calc(100% + 24px);
     }
     
     /* Activity info */
@@ -2893,8 +2929,13 @@ body, html {
   
   .route-section > .photos-section,
   .route-section > .mobile-map-container,
+  .route-section > .map-container,
   .route-section > .activity-info {
       padding-left: 0;
+      padding-right: 0;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
   }
   /* Space between photos strip and conditions box; cleaner scrollbar */
   .photos-section {
