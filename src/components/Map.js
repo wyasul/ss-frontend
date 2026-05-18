@@ -94,6 +94,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
           setupPolylines();
           updateMarkers();
           toggle3D(true); // Initialize map in 3D view
+          requestAnimationFrame(() => map.current?.resize());
         });
       } catch (error) {
         console.error('Error initializing map:', error);
@@ -118,6 +119,17 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
       updateMarkers();
     }
   }, [displayImages, photos]);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => map.current?.resize());
+    });
+    observer.observe(mapContainer.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     isPhotoHoveredRef.current = isPhotoHovered;
