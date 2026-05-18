@@ -716,7 +716,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   }}
                 >
                   Mega Map
-                  <span className="mega-map-new">NEW</span>
+                  <span className="mega-map-new">New</span>
                   <span className="route-hit-count">{bigMapData.polylines.length}</span>
                 </a>
                 {isMobile && (
@@ -781,11 +781,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               className="route-section big-map-section"
               ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
             >
-              <h2>
-                Mega Map
-                <span className="mega-map-new">NEW</span>
-              </h2>
-              <div className="mobile-map-container">
+              <div className="big-map-title-group">
+                <h2>
+                  Mega Map
+                  <span className="mega-map-new">New</span>
+                </h2>
+                <p className="big-map-subtitle">All routes · tap a line for Strava</p>
+              </div>
+              <div className="mobile-map-container big-map-container">
                 <Map
                   polylines={bigMapData.polylines}
                   mapId={BIG_MAP_MAP_ID}
@@ -796,6 +799,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
                   }
                   onMapError={() => setHideBigMap(true)}
+                  size="large"
                 />
               </div>
             </div>
@@ -921,13 +925,16 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     className="route-section big-map-section"
                     ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
                   >
-                    <div className="route-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h2>
-                        Mega Map
-                        <span className="mega-map-new">NEW</span>
-                      </h2>
+                    <div className="route-header big-map-header">
+                      <div className="big-map-title-group">
+                        <h2>
+                          Mega Map
+                          <span className="mega-map-new">New</span>
+                        </h2>
+                        <p className="big-map-subtitle">All routes · hover to highlight</p>
+                      </div>
                     </div>
-                    <div className="map-container">
+                    <div className="map-container big-map-container">
                       <Map
                         polylines={bigMapData.polylines}
                         mapId={BIG_MAP_MAP_ID}
@@ -938,6 +945,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                           setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
                         }
                         onMapError={() => setHideBigMap(true)}
+                        size="large"
                       />
                     </div>
                   </div>

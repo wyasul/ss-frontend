@@ -33,7 +33,8 @@ const calculateAverageBearing = (polylines) => {
   return (averageBearing + 360) % 360; // Normalize to 0-360
 };
 
-const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages, onMapError }) => {
+const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages, onMapError, size = 'default' }) => {
+  const isLarge = size === 'large';
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]);
@@ -41,8 +42,10 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   const [is3D, setIs3D] = useState(true);
   const [isPhotoHovered, setIsPhotoHovered] = useState(false);
   const isPhotoHoveredRef = useRef(isPhotoHovered); // Ref to track hover state
-  const lineColor = '#f75002';
-  const selectedLineColor = '#1eff00';
+  const lineColor = isLarge ? '#ff6b35' : '#f75002';
+  const selectedLineColor = '#5ee06a';
+  const lineWidth = isLarge ? 2.5 : 4;
+  const casingWidth = isLarge ? 5 : 0;
   const [mapError, setMapError] = useState(null);
 
   useEffect(() => {
@@ -166,6 +169,22 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         },
       });
 
+      if (isLarge) {
+        map.current.addLayer({
+          id: `${layerId}-casing`,
+          type: 'line',
+          source: sourceId,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': 'rgba(12, 12, 12, 0.75)',
+            'line-width': casingWidth,
+          },
+        });
+      }
+
       map.current.addLayer({
         id: layerId,
         type: 'line',
@@ -176,7 +195,8 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         },
         paint: {
           'line-color': lineColor,
-          'line-width': 4,
+          'line-width': lineWidth,
+          'line-opacity': isLarge ? 0.92 : 1,
         },
       });
 
@@ -437,27 +457,30 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   const photosWithCoordinates = photos.filter(photo => photo.lat && photo.lng);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={`map-wrapper${isLarge ? ' map-wrapper--large' : ''}`}>
       {mapError ? (
         <div className="map-error-message">{mapError}</div>
       ) : (
         <>
-          <div id={`map-${mapId}`} ref={mapContainer} style={{ width: '100%', height: '400px' }} />
-          {photosWithCoordinates.length > 0 && (
+          <div id={`map-${mapId}`} ref={mapContainer} className="map-canvas" />
+          <div className="map-controls">
+            {photosWithCoordinates.length > 0 && (
+              <button
+                type="button"
+                className="map-control-btn"
+                onClick={() => setDisplayImages(!displayImages)}
+              >
+                {displayImages ? 'Hide photos' : 'Show photos'}
+              </button>
+            )}
             <button
-              className="toggle-button"
-              onClick={() => setDisplayImages(!displayImages)}
+              type="button"
+              className="map-control-btn"
+              onClick={() => toggle3D(!is3D)}
             >
-              {displayImages ? 'Hide Images' : 'Display Images'}
+              {is3D ? '2D' : '3D'}
             </button>
-          )}
-          <button
-            className="toggle-3d-button"
-            onClick={() => toggle3D(!is3D)}
-            style={{ top: photosWithCoordinates.length > 0 ? '40px' : '10px', left: '10px' }}
-          >
-            {is3D ? '2D Toggle' : '3D Toggle'}
-          </button>
+          </div>
         </>
       )}
     </div>
