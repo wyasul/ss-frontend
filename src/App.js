@@ -257,7 +257,7 @@ const App = () => {
               />
               <label htmlFor="trail-run">Trail Running</label>
             </div>
-            <div className="radio-option radio-option-disabled">
+            <div className="radio-option">
               <input
                 type="radio"
                 id="backcountry-ski"
@@ -265,12 +265,9 @@ const App = () => {
                 value="backcountry ski"
                 checked={activity === "backcountry ski"}
                 onChange={(e) => setActivity(e.target.value)}
-                disabled
+                disabled={loading}
               />
-              <label htmlFor="backcountry-ski">
-                <span className="radio-option-title">Backcountry Skiing</span>
-                <span className="radio-option-note">not active</span>
-              </label>
+              <label htmlFor="backcountry-ski">Backcountry Skiing</label>
             </div>
           </div>
           <div className="radio-group">
