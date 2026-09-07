@@ -743,6 +743,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     }}
                   >
                     {routeName}
+                    {report[routeName].conditionsAdjective && (
+                      <span className="route-adjective">{report[routeName].conditionsAdjective}</span>
+                    )}
                     <span className="route-hit-count">{report[routeName].activityInfo.flatMap((info) => info.activityUrls).length}</span>
                   </a>
                   {isMobile && (

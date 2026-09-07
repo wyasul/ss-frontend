@@ -3013,3 +3013,18 @@ body, html {
     display: flex;
   }
 }
+
+.route-adjective {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 9px;
+  color: #ffb07a;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  background: rgba(241, 111, 11, 0.18);
+  border: 1px solid rgba(241, 111, 11, 0.35);
+  border-radius: 999px;
+}
