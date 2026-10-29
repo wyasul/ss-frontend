@@ -12,8 +12,8 @@ import { inject } from '@vercel/analytics';
 inject();
 
 const App = () => {
-  const [activity, setActivity] = useState("trail run");
-  const [place, setPlace] = useState("Jackson, WY");
+  const [activity, setActivity] = useState("backcountry ski");
+  const [place, setPlace] = useState("Salt Lake City, UT");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
