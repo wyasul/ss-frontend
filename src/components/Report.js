@@ -347,7 +347,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     const emptyMessage = isSiteMaintenanceWindow2026(date)
       ? 'Site was down for maintenance'
       : date < todayStr
-        ? 'This selection is undergoing maintenance'
+        ? 'No data for this day'
         : 'No activities for this date.';
     return (
       <div className="no-reports-container">
