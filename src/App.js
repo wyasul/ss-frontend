@@ -253,7 +253,7 @@ const App = () => {
                 value="trail run"
                 checked={activity === "trail run"}
                 onChange={(e) => setActivity(e.target.value)}
-                disabled={loading}
+                disabled={loading || place === "Rogers Pass, BC"}
               />
               <label htmlFor="trail-run">Trail Running</label>
             </div>
@@ -304,7 +304,7 @@ const App = () => {
                 value="Rogers Pass, BC"
                 checked={place === "Rogers Pass, BC"}
                 onChange={(e) => setPlace(e.target.value)}
-                disabled={loading}
+                disabled={loading || activity === "trail run"}
               />
               <label htmlFor="rogers-pass">Rogers Pass, BC</label>
             </div>
