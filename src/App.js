@@ -11,6 +11,9 @@ import { inject } from '@vercel/analytics';
 // Inject Vercel Analytics
 inject();
 
+// Toggle off for now; keep modal/button code in place for when we need it again.
+const SHOW_HELP_CTA = false;
+
 const App = () => {
   const [activity, setActivity] = useState("backcountry ski");
   const [place, setPlace] = useState("Salt Lake City, UT");
@@ -232,14 +235,16 @@ const App = () => {
         </div>
       )}
 
-      <button
-        type="button"
-        className="help-me-out-btn help-cta-button"
-        onClick={() => setShowHelpModal(true)}
-        disabled={loading}
-      >
-        Strava stalker is dying and needs help
-      </button>
+      {SHOW_HELP_CTA && (
+        <button
+          type="button"
+          className="help-me-out-btn help-cta-button"
+          onClick={() => setShowHelpModal(true)}
+          disabled={loading}
+        >
+          Strava stalker is dying and needs help
+        </button>
+      )}
 
       <div className="select-container-wrapper">
         <div className="radio-groups">
