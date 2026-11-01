@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Login from "./components/Login";
@@ -27,6 +27,8 @@ const App = () => {
   const [helpModalShouldShow, setHelpModalShouldShow] = useState(false);
   const [pulseDone, setPulseDone] = useState(false);
   const [helpVideoOk, setHelpVideoOk] = useState(true);
+  const activityAutoSetRef = useRef(false);
+  const activityUserChangedRef = useRef(false);
 
   const helpVideoSrc =
     process.env.REACT_APP_HELP_VIDEO_SRC || `${process.env.PUBLIC_URL}/help.mp4`;
@@ -44,10 +46,58 @@ const App = () => {
     // If it's 8pm (20:00) or later, show today, otherwise show yesterday
     if (hour >= 20) {
       setDate(nowMST.format("YYYY-MM-DD"));
-    } else { 
+    } else {
       setDate(nowMST.subtract(1, 'days').format("YYYY-MM-DD"));
     }
   }, []);
+
+  // Default activity: ski season (Dec–Apr) always defaults to backcountry ski;
+  // otherwise default to whichever activity has more hits for the default day.
+  useEffect(() => {
+    if (!date || activityAutoSetRef.current || activityUserChangedRef.current) return;
+    activityAutoSetRef.current = true;
+
+    const month = moment.tz(date, 'America/Denver').month(); // 0 = Jan
+    const isSkiSeason = month === 11 || month <= 3; // Dec, Jan, Feb, Mar, Apr
+    if (isSkiSeason) {
+      setActivity('backcountry ski');
+      return;
+    }
+
+    const apiBaseUrl = 'https://stravastalker-05fece4b00b5.herokuapp.com';
+    const countActivities = async (act) => {
+      try {
+        const res = await fetch(
+          `${apiBaseUrl}/api/report/${encodeURIComponent(place)}/${encodeURIComponent(act)}?date=${date}`
+        );
+        if (!res.ok) return 0;
+        const body = await res.json();
+        const data = body?.data;
+        if (!data || typeof data !== 'object') return 0;
+        return Object.values(data).reduce((sum, route) => {
+          const urls = Array.isArray(route?.activityInfo)
+            ? route.activityInfo.reduce(
+                (n, info) => n + (Array.isArray(info?.activityUrls) ? info.activityUrls.length : 0),
+                0
+              )
+            : 0;
+          return sum + urls;
+        }, 0);
+      } catch {
+        return 0;
+      }
+    };
+
+    (async () => {
+      if (activityUserChangedRef.current) return;
+      const [trailCount, skiCount] = await Promise.all([
+        countActivities('trail run'),
+        countActivities('backcountry ski'),
+      ]);
+      if (activityUserChangedRef.current) return;
+      setActivity(skiCount >= trailCount ? 'backcountry ski' : 'trail run');
+    })();
+  }, [date, place]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -87,6 +137,11 @@ const App = () => {
     const timer = setTimeout(() => setPulseDone(true), 2400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleActivityChange = (e) => {
+    activityUserChangedRef.current = true;
+    setActivity(e.target.value);
+  };
 
   const handleDateChange = (e) => {
     const selectedDate = moment(e.target.value).format("YYYY-MM-DD");
@@ -257,7 +312,7 @@ const App = () => {
                 name="activity"
                 value="trail run"
                 checked={activity === "trail run"}
-                onChange={(e) => setActivity(e.target.value)}
+                onChange={handleActivityChange}
                 disabled={loading || place === "Rogers Pass, BC"}
               />
               <label htmlFor="trail-run">Trail Running</label>
@@ -269,7 +324,7 @@ const App = () => {
                 name="activity"
                 value="backcountry ski"
                 checked={activity === "backcountry ski"}
-                onChange={(e) => setActivity(e.target.value)}
+                onChange={handleActivityChange}
                 disabled={loading}
               />
               <label htmlFor="backcountry-ski">Backcountry Skiing</label>

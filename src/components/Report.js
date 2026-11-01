@@ -746,7 +746,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           )}
         </p>
         <ul>
-          {report && !hideBigMap && bigMapData.polylines.length > 0 && (
+          {!isMobile && report && !hideBigMap && bigMapData.polylines.length > 0 && (
             <li>
               <div className="route-bar">
                 <a
