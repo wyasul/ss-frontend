@@ -137,12 +137,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   }, [report]);
 
   useEffect(() => {
-    if (isMobile && report && bigMapData.polylines.length > 0) {
-      setSelectedRoute((prev) => (prev === null ? BIG_MAP_ROUTE_KEY : prev));
-    }
-  }, [isMobile, report, bigMapData.polylines.length]);
-
-  useEffect(() => {
     if (hideBigMap && selectedRoute === BIG_MAP_ROUTE_KEY) {
       setSelectedRoute(null);
     }
@@ -759,22 +753,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   href="#big-map"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (isMobile) {
-                      setSelectedRoute(BIG_MAP_ROUTE_KEY);
-                    } else {
-                      routeRefs.current[BIG_MAP_ROUTE_KEY]?.scrollIntoView({ behavior: 'smooth' });
-                    }
+                    routeRefs.current[BIG_MAP_ROUTE_KEY]?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
                   Mega Map
                   <span className="mega-map-new">New</span>
                   <span className="route-hit-count">{bigMapData.polylines.length}</span>
                 </a>
-                {isMobile && (
-                  <button className="more-info-button" onClick={() => setSelectedRoute(BIG_MAP_ROUTE_KEY)}>
-                    details
-                  </button>
-                )}
               </div>
             </li>
           )}
@@ -824,44 +809,37 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         </ul>
       </div>
 
-      {isMobile && !hideBigMap && selectedRoute === BIG_MAP_ROUTE_KEY && (
-        <div ref={reportViewRef} className="report-view report-view-active">
-          <button className="back-button" onClick={() => setSelectedRoute(null)}>
-            {"Back to routes"}
-          </button>
-          <div className="report-content">
-            <div
-              id="big-map"
-              className="route-section big-map-section"
-              ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
-            >
-              <div className="big-map-title-group">
-                <h2>
-                  Mega Map
-                  <span className="mega-map-new">New</span>
-                </h2>
-                <p className="big-map-subtitle">All routes · tap a line for Strava</p>
-              </div>
-              <div className="mobile-map-container big-map-container">
-                <Map
-                  polylines={bigMapData.polylines}
-                  mapId={BIG_MAP_MAP_ID}
-                  activityInfo={bigMapData.activityInfo}
-                  photos={bigMapData.photos}
-                  displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
-                  setDisplayImages={(newValue) =>
-                    setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
-                  }
-                  onMapError={() => setHideBigMap(true)}
-                  size="large"
-                />
-              </div>
-            </div>
+      {isMobile && !hideBigMap && bigMapData.polylines.length > 0 && (
+        <div
+          id="big-map"
+          className="route-section big-map-section mobile-inline-big-map"
+          ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
+        >
+          <div className="big-map-title-group">
+            <h2>
+              Mega Map
+              <span className="mega-map-new">New</span>
+            </h2>
+            <p className="big-map-subtitle">All routes · tap a line for Strava</p>
+          </div>
+          <div className="mobile-map-container big-map-container">
+            <Map
+              polylines={bigMapData.polylines}
+              mapId={BIG_MAP_MAP_ID}
+              activityInfo={bigMapData.activityInfo}
+              photos={bigMapData.photos}
+              displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
+              setDisplayImages={(newValue) =>
+                setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
+              }
+              onMapError={() => setHideBigMap(true)}
+              size="large"
+            />
           </div>
         </div>
       )}
 
-      {isMobile && selectedRoute && selectedRoute !== BIG_MAP_ROUTE_KEY && (
+      {isMobile && selectedRoute && (
         <div ref={reportViewRef} className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>
           <button className="back-button" onClick={() => setSelectedRoute(null)}>
             {"Back to routes"}

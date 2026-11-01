@@ -2041,6 +2041,13 @@ body, html {
       padding: 16px 12px 12px;
     }
 
+    .mobile-inline-big-map {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin-top: 20px;
+    }
+
     .big-map-section > .big-map-title-group {
       padding-left: 0;
       padding-right: 0;
@@ -2076,12 +2083,15 @@ body, html {
       left: 0 !important;
     }
 
-    /* Bleed maps to route-section edges (cancels section horizontal padding) */
+    /* Contained (not edge-to-edge) so it stays centered with visible rounded corners */
     .route-section > .mobile-map-container {
-      margin-left: -20px;
-      margin-right: -20px;
-      width: calc(100% + 40px);
-      max-width: calc(100% + 40px);
+      margin-left: 0;
+      margin-right: 0;
+      width: 100%;
+      max-width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      isolation: isolate;
     }
 
     .big-map-section > .mobile-map-container {
