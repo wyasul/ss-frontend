@@ -1796,6 +1796,12 @@ body, html {
   
   /* Mobile-specific styles - Consolidated */
   @media (max-width: 768px) {
+    body {
+      /* background-attachment: fixed is unreliable on mobile (esp. iOS Safari) —
+         it repaints relative to the shrinking/growing viewport as the address bar
+         shows/hides, which crops/shifts the image. Scroll attachment avoids that. */
+      background-attachment: scroll;
+    }
     .help-buttons-container {
       position: static;
       top: auto;
