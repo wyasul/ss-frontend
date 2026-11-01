@@ -763,6 +763,37 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               </div>
             </li>
           )}
+          {isMobile && !hideBigMap && bigMapData.polylines.length > 0 && (
+            <li className="mobile-inline-big-map-item">
+              <div
+                id="big-map"
+                className="route-section big-map-section mobile-inline-big-map"
+                ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
+              >
+                <div className="big-map-title-group">
+                  <h2>
+                    Mega Map
+                    <span className="mega-map-new">New</span>
+                  </h2>
+                  <p className="big-map-subtitle">All routes · tap a line for Strava</p>
+                </div>
+                <div className="mobile-map-container big-map-container">
+                  <Map
+                    polylines={bigMapData.polylines}
+                    mapId={BIG_MAP_MAP_ID}
+                    activityInfo={bigMapData.activityInfo}
+                    photos={bigMapData.photos}
+                    displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
+                    setDisplayImages={(newValue) =>
+                      setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
+                    }
+                    onMapError={() => setHideBigMap(true)}
+                    size="large"
+                  />
+                </div>
+              </div>
+            </li>
+          )}
           {report &&
             reportOrder.map((routeName, index) => (
               <li key={index}>
@@ -808,36 +839,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             ))}
         </ul>
       </div>
-
-      {isMobile && !hideBigMap && bigMapData.polylines.length > 0 && (
-        <div
-          id="big-map"
-          className="route-section big-map-section mobile-inline-big-map"
-          ref={(el) => (routeRefs.current[BIG_MAP_ROUTE_KEY] = el)}
-        >
-          <div className="big-map-title-group">
-            <h2>
-              Mega Map
-              <span className="mega-map-new">New</span>
-            </h2>
-            <p className="big-map-subtitle">All routes · tap a line for Strava</p>
-          </div>
-          <div className="mobile-map-container big-map-container">
-            <Map
-              polylines={bigMapData.polylines}
-              mapId={BIG_MAP_MAP_ID}
-              activityInfo={bigMapData.activityInfo}
-              photos={bigMapData.photos}
-              displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
-              setDisplayImages={(newValue) =>
-                setDisplayImagesState((prev) => ({ ...prev, [BIG_MAP_ROUTE_KEY]: newValue }))
-              }
-              onMapError={() => setHideBigMap(true)}
-              size="large"
-            />
-          </div>
-        </div>
-      )}
 
       {isMobile && selectedRoute && (
         <div ref={reportViewRef} className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>

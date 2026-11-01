@@ -2041,11 +2041,24 @@ body, html {
       padding: 16px 12px 12px;
     }
 
+    .mobile-inline-big-map-item {
+      list-style: none;
+    }
+
     .mobile-inline-big-map {
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
-      margin-top: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mobile-show-map-button {
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 999px;
+      letter-spacing: 0.2px;
     }
 
     .big-map-section > .big-map-title-group {
@@ -2094,13 +2107,6 @@ body, html {
       isolation: isolate;
     }
 
-    .big-map-section > .mobile-map-container {
-      margin-left: -12px;
-      margin-right: -12px;
-      width: calc(100% + 24px);
-      max-width: calc(100% + 24px);
-    }
-    
     /* Activity info */
     .activity-info {
       padding: 10px;
