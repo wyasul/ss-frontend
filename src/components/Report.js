@@ -372,7 +372,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   };
 
   // Rendered on every state (loading, error, empty, loaded) so help is always reachable.
-  const helpAndModals = (
+  const helpModals = (
     <>
       {showHowItWorks && (
         <div
@@ -505,29 +505,40 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           </div>
         </div>
       )}
-      <div className="help-buttons-container">
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowHowItWorks(true)}
-        >
-          How does it work?
-        </button>
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowRateLimitInfo(true)}
-        >
-          Not seeing the activities you expected?
-        </button>
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={openFeatureRequestModal}
-        >
-          Feature request?
-        </button>
-      </div>
+    </>
+  );
+
+  const helpButtonsRow = (
+    <div className="help-buttons-container">
+      <button
+        type="button"
+        className="rate-limit-help-button"
+        onClick={() => setShowHowItWorks(true)}
+      >
+        How does it work?
+      </button>
+      <button
+        type="button"
+        className="rate-limit-help-button"
+        onClick={() => setShowRateLimitInfo(true)}
+      >
+        Not seeing the activities you expected?
+      </button>
+      <button
+        type="button"
+        className="rate-limit-help-button"
+        onClick={openFeatureRequestModal}
+      >
+        Feature request?
+      </button>
+    </div>
+  );
+
+  // Simple states (no route list to be "underneath"): modals + buttons together is fine.
+  const helpAndModals = (
+    <>
+      {helpModals}
+      {helpButtonsRow}
     </>
   );
 
@@ -733,7 +744,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   return (
     <div className="content-container">
-      {helpAndModals}
+      {helpModals}
       <div className={`navbar${(isMobile && selectedRoute) || hideNavbar ? ' navbar-hidden' : ''}`}>
         <h1>Routes</h1>
         <p style={{ fontSize: '12px', color: '#ffffff', margin: '5px 0' }}>
@@ -842,8 +853,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
       {isMobile && selectedRoute && (
         <div ref={reportViewRef} className={`report-view ${selectedRoute ? 'report-view-active' : ''}`}>
-          <button className="back-button" onClick={() => setSelectedRoute(null)}>
-            {"Back to routes"}
+          <button className="back-button" onClick={() => setSelectedRoute(null)} aria-label="Back to routes">
+            ←
           </button>
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
@@ -1093,6 +1104,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         <p style={{ fontWeight: 'bold' }}>Email: wyattsullivan02@gmail.com</p>
         <p style={{ fontWeight: 'bold' }}>Phone: (307) 699-2974</p>
       </div>
+      {helpButtonsRow}
       {expandedPhotoSrc && (
         <div
           className="photo-lightbox-overlay"
