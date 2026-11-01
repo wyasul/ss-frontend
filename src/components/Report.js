@@ -137,6 +137,12 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   }, [report]);
 
   useEffect(() => {
+    if (isMobile && report && bigMapData.polylines.length > 0) {
+      setSelectedRoute((prev) => (prev === null ? BIG_MAP_ROUTE_KEY : prev));
+    }
+  }, [isMobile, report, bigMapData.polylines.length]);
+
+  useEffect(() => {
     if (hideBigMap && selectedRoute === BIG_MAP_ROUTE_KEY) {
       setSelectedRoute(null);
     }
@@ -309,94 +315,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     fetchReport();
   }, [activity, place, date, setLoading]);
 
-  if (!date) {
-    return (
-      <div className="no-reports-container">
-        <h2 className="no-reports-message">Please select a date to view the report.</h2>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p className="loading-text">Loading...</p>
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="no-reports-container">
-        <h2 className="no-reports-message">{error}</h2>
-      </div>
-    );
-  }
-
-  if (report === null) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p className="loading-text">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!reportHasActivityData(report, reportOrder)) {
-    const todayStr = getTodayLocalYYYYMMDD();
-    const emptyMessage = isSiteMaintenanceWindow2026(date)
-      ? 'Site was down for maintenance'
-      : date < todayStr
-        ? 'No data for this day'
-        : 'No activities for this date.';
-    return (
-      <div className="no-reports-container">
-        <h2 className="no-reports-message">{emptyMessage}</h2>
-      </div>
-    );
-  }
-
-  const clearAllHoveredActivities = () => {
-    const hoveredElements = document.querySelectorAll('.hovered');
-    hoveredElements.forEach((element) => {
-      element.classList.remove('hovered');
-    });
-  };
-
-  const handleLinkClick = (url) => {
-    const stravaId = url.split('/')[4];
-    const appUrl = `strava://activities/${stravaId}`;
-    const fallbackUrl = url;
-
-    if (isMobileDevice()) {
-      let appOpened = false;
-      const start = Date.now();
-
-      // Attempt to open the Strava app using the custom URL scheme
-      window.location.href = appUrl;
-
-      // Add an event listener to detect if the page visibility changes
-      const handleVisibilityChange = () => {
-        if (document.hidden) {
-          appOpened = true;
-          document.removeEventListener('visibilitychange', handleVisibilityChange);
-        }
-      };
-
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-
-      // Use a timeout to check if the app opened
-      setTimeout(() => {
-        // If the time elapsed is less than a threshold, assume the app did not open
-        if (!appOpened && Date.now() - start < 1500) {
-          window.location.href = fallbackUrl;
-        }
-      }, 3000);
-    } else {
-      window.open(url, '_blank');
-    }
-  };
-
   const openFeatureRequestModal = () => {
     setFeatureRequestText('');
     setFeatureRequestError(null);
@@ -459,105 +377,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }
   };
 
-  let displayActivity = activity;
-  if (activity === 'trail run') {
-    displayActivity = 'Trail Running';
-  }
-  if (activity === 'backcountry ski') {
-    displayActivity = 'Backcountry Skiing';
-  }
-  if (activity === 'mountain bike') {
-    displayActivity = 'Mountain Biking';
-  }
-
-  const toggleMap = (routeName) => {
-    setShowMap((prevState) => ({
-      ...prevState,
-      [routeName]: !prevState[routeName],
-    }));
-  };
-
-  const toggleActivityDescriptions = (route) => {
-    setShowActivityDescriptions((prev) => ({ ...prev, [route]: !prev[route] }));
-  };
-
-  const getActivityDescription = (url) => {
-    if (!url || url.description == null) return null;
-    const t = String(url.description).trim();
-    return t === '' ? null : t;
-  };
-
-  const sanitizeId = (str) => {
-    return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  };
-
-  const renderPhotoTileSimple = (photo, k) => (
-    <div key={k} className="photo-item">
-      <button
-        type="button"
-        className="expand-icon"
-        aria-label="Expand photo"
-        onClick={(e) => {
-          e.stopPropagation();
-          setExpandedPhotoSrc(photo.photo);
-        }}
-      >
-        <FiMaximize2 size={16} aria-hidden />
-      </button>
-      <img
-        src={photo.photo}
-        alt={`Photo ${k + 1}`}
-        loading="lazy"
-        onClick={() => handleLinkClick(photo.activityUrl)}
-      />
-    </div>
-  );
-
-  const renderPhotoTileWithMap = (photo, k, route) => (
-    <div
-      key={k}
-      className="photo-item"
-      onMouseEnter={() => {
-        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
-        if (mapElement) {
-          const event = new CustomEvent(`mouseenter-photo-${sanitizeId(route)}-${k}`, {
-            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
-          });
-          mapElement.dispatchEvent(event);
-        }
-      }}
-      onMouseLeave={() => {
-        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
-        if (mapElement) {
-          const event = new CustomEvent(`mouseleave-photo-${sanitizeId(route)}-${k}`, {
-            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
-          });
-          mapElement.dispatchEvent(event);
-        }
-      }}
-    >
-      <button
-        type="button"
-        className="expand-icon"
-        aria-label="Expand photo"
-        onClick={(e) => {
-          e.stopPropagation();
-          setExpandedPhotoSrc(photo.photo);
-        }}
-      >
-        <FiMaximize2 size={16} aria-hidden />
-      </button>
-      <img
-        src={photo.photo}
-        alt={`Photo ${k + 1}`}
-        loading="lazy"
-        onClick={() => handleLinkClick(photo.activityUrl)}
-      />
-    </div>
-  );
-
-  return (
-    <div className="content-container">
+  // Rendered on every state (loading, error, empty, loaded) so help is always reachable.
+  const helpAndModals = (
+    <>
       {showHowItWorks && (
         <div
           className="rate-limit-modal-overlay"
@@ -689,6 +511,235 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           </div>
         </div>
       )}
+      <div className="help-buttons-container">
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowHowItWorks(true)}
+        >
+          How does it work?
+        </button>
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={() => setShowRateLimitInfo(true)}
+        >
+          Not seeing the activities you expected?
+        </button>
+        <button
+          type="button"
+          className="rate-limit-help-button"
+          onClick={openFeatureRequestModal}
+        >
+          Feature request?
+        </button>
+      </div>
+    </>
+  );
+
+  if (!date) {
+    return (
+      <>
+        {helpAndModals}
+        <div className="no-reports-container">
+          <h2 className="no-reports-message">Please select a date to view the report.</h2>
+        </div>
+      </>
+    );
+  }
+
+  if (loading) {
+    return (
+      <>
+        {helpAndModals}
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading...</p>
+        </div>
+      </>
+    );
+  }
+  if (error) {
+    return (
+      <>
+        {helpAndModals}
+        <div className="no-reports-container">
+          <h2 className="no-reports-message">{error}</h2>
+        </div>
+      </>
+    );
+  }
+
+  if (report === null) {
+    return (
+      <>
+        {helpAndModals}
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (!reportHasActivityData(report, reportOrder)) {
+    const todayStr = getTodayLocalYYYYMMDD();
+    const emptyMessage = isSiteMaintenanceWindow2026(date)
+      ? 'Site was down for maintenance'
+      : date < todayStr
+        ? 'No data for this day'
+        : 'No activities for this date.';
+    return (
+      <>
+        {helpAndModals}
+        <div className="no-reports-container">
+          <h2 className="no-reports-message">{emptyMessage}</h2>
+        </div>
+      </>
+    );
+  }
+
+  const clearAllHoveredActivities = () => {
+    const hoveredElements = document.querySelectorAll('.hovered');
+    hoveredElements.forEach((element) => {
+      element.classList.remove('hovered');
+    });
+  };
+
+  const handleLinkClick = (url) => {
+    const stravaId = url.split('/')[4];
+    const appUrl = `strava://activities/${stravaId}`;
+    const fallbackUrl = url;
+
+    if (isMobileDevice()) {
+      let appOpened = false;
+      const start = Date.now();
+
+      // Attempt to open the Strava app using the custom URL scheme
+      window.location.href = appUrl;
+
+      // Add an event listener to detect if the page visibility changes
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Use a timeout to check if the app opened
+      setTimeout(() => {
+        // If the time elapsed is less than a threshold, assume the app did not open
+        if (!appOpened && Date.now() - start < 1500) {
+          window.location.href = fallbackUrl;
+        }
+      }, 3000);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  let displayActivity = activity;
+  if (activity === 'trail run') {
+    displayActivity = 'Trail Running';
+  }
+  if (activity === 'backcountry ski') {
+    displayActivity = 'Backcountry Skiing';
+  }
+  if (activity === 'mountain bike') {
+    displayActivity = 'Mountain Biking';
+  }
+
+  const toggleMap = (routeName) => {
+    setShowMap((prevState) => ({
+      ...prevState,
+      [routeName]: !prevState[routeName],
+    }));
+  };
+
+  const toggleActivityDescriptions = (route) => {
+    setShowActivityDescriptions((prev) => ({ ...prev, [route]: !prev[route] }));
+  };
+
+  const getActivityDescription = (url) => {
+    if (!url || url.description == null) return null;
+    const t = String(url.description).trim();
+    return t === '' ? null : t;
+  };
+
+  const sanitizeId = (str) => {
+    return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  };
+
+  const renderPhotoTileSimple = (photo, k) => (
+    <div key={k} className="photo-item">
+      <button
+        type="button"
+        className="expand-icon"
+        aria-label="Expand photo"
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpandedPhotoSrc(photo.photo);
+        }}
+      >
+        <FiMaximize2 size={16} aria-hidden />
+      </button>
+      <img
+        src={photo.photo}
+        alt={`Photo ${k + 1}`}
+        loading="lazy"
+        onClick={() => handleLinkClick(photo.activityUrl)}
+      />
+    </div>
+  );
+
+  const renderPhotoTileWithMap = (photo, k, route) => (
+    <div
+      key={k}
+      className="photo-item"
+      onMouseEnter={() => {
+        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
+        if (mapElement) {
+          const event = new CustomEvent(`mouseenter-photo-${sanitizeId(route)}-${k}`, {
+            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
+          });
+          mapElement.dispatchEvent(event);
+        }
+      }}
+      onMouseLeave={() => {
+        const mapElement = document.querySelector(`#map-${sanitizeId(route)}`);
+        if (mapElement) {
+          const event = new CustomEvent(`mouseleave-photo-${sanitizeId(route)}-${k}`, {
+            detail: { photo, mapId: sanitizeId(route), polylineIndex: photo.polylineIndex, photoIndex: k },
+          });
+          mapElement.dispatchEvent(event);
+        }
+      }}
+    >
+      <button
+        type="button"
+        className="expand-icon"
+        aria-label="Expand photo"
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpandedPhotoSrc(photo.photo);
+        }}
+      >
+        <FiMaximize2 size={16} aria-hidden />
+      </button>
+      <img
+        src={photo.photo}
+        alt={`Photo ${k + 1}`}
+        loading="lazy"
+        onClick={() => handleLinkClick(photo.activityUrl)}
+      />
+    </div>
+  );
+
+  return (
+    <div className="content-container">
+      {helpAndModals}
       <div className={`navbar${(isMobile && selectedRoute) || hideNavbar ? ' navbar-hidden' : ''}`}>
         <h1>Routes</h1>
         <p style={{ fontSize: '12px', color: '#ffffff', margin: '5px 0' }}>
@@ -1062,29 +1113,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         <h1>You no likey?</h1>
         <p style={{ fontWeight: 'bold' }}>Email: wyattsullivan02@gmail.com</p>
         <p style={{ fontWeight: 'bold' }}>Phone: (307) 699-2974</p>
-      </div>
-      <div className="help-buttons-container">
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowHowItWorks(true)}
-        >
-          How does it work?
-        </button>
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={() => setShowRateLimitInfo(true)}
-        >
-          Not seeing the activities you expected?
-        </button>
-        <button
-          type="button"
-          className="rate-limit-help-button"
-          onClick={openFeatureRequestModal}
-        >
-          Feature request?
-        </button>
       </div>
       {expandedPhotoSrc && (
         <div
