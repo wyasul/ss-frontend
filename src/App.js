@@ -296,6 +296,18 @@ const App = () => {
               />
               <label htmlFor="slc">Salt Lake City, UT</label>
             </div>
+            <div className="radio-option">
+              <input
+                type="radio"
+                id="rogers-pass"
+                name="place"
+                value="Rogers Pass, BC"
+                checked={place === "Rogers Pass, BC"}
+                onChange={(e) => setPlace(e.target.value)}
+                disabled={loading}
+              />
+              <label htmlFor="rogers-pass">Rogers Pass, BC</label>
+            </div>
           </div>
         </div>
         <div className="date-select">
