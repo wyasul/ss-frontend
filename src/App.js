@@ -245,7 +245,7 @@ const App = () => {
         <div className="radio-groups">
           <div className="radio-group">
             <div className="radio-group-label">Activity</div>
-            <div className="radio-option">
+            <div className={`radio-option${place === "Rogers Pass, BC" ? " radio-option-disabled" : ""}`}>
               <input
                 type="radio"
                 id="trail-run"
@@ -296,7 +296,7 @@ const App = () => {
               />
               <label htmlFor="slc">Salt Lake City, UT</label>
             </div>
-            <div className="radio-option">
+            <div className={`radio-option${activity === "trail run" ? " radio-option-disabled" : ""}`}>
               <input
                 type="radio"
                 id="rogers-pass"
