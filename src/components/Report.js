@@ -3,6 +3,7 @@ import axios from 'axios';
 import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
+import { trackEvent } from '../analytics';
 
 const emojiSets = {
   'trail run': ["🏃‍♂️", "🏃‍♀️"],
@@ -281,6 +282,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
         setReport(sortedProcessedReport);
         setReportOrder(order);
+        trackEvent('view_report', { place, activity, date, route_count: order.length });
 
         const initialDisplayImagesState = {};
         Object.keys(processedReport).forEach((route) => {
@@ -359,6 +361,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       if (data.error) {
         throw new Error(typeof data.error === 'string' ? data.error : 'Form submit rejected the request');
       }
+      trackEvent('submit_feature_request', { place, activity, date });
       setFeatureRequestSent(true);
       setFeatureRequestText('');
     } catch (err) {
@@ -513,21 +516,30 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       <button
         type="button"
         className="rate-limit-help-button"
-        onClick={() => setShowHowItWorks(true)}
+        onClick={() => {
+          trackEvent('open_how_it_works');
+          setShowHowItWorks(true);
+        }}
       >
         How does it work?
       </button>
       <button
         type="button"
         className="rate-limit-help-button"
-        onClick={() => setShowRateLimitInfo(true)}
+        onClick={() => {
+          trackEvent('open_rate_limit_info');
+          setShowRateLimitInfo(true);
+        }}
       >
         Not seeing the activities you expected?
       </button>
       <button
         type="button"
         className="rate-limit-help-button"
-        onClick={openFeatureRequestModal}
+        onClick={() => {
+          trackEvent('open_feature_request');
+          openFeatureRequestModal();
+        }}
       >
         Feature request?
       </button>
@@ -612,6 +624,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   };
 
   const handleLinkClick = (url) => {
+    trackEvent('click_strava_activity', { place, activity, date, url });
     const stravaId = url.split('/')[4];
     const appUrl = `strava://activities/${stravaId}`;
     const fallbackUrl = url;
@@ -657,14 +670,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   }
 
   const toggleMap = (routeName) => {
-    setShowMap((prevState) => ({
-      ...prevState,
-      [routeName]: !prevState[routeName],
-    }));
+    setShowMap((prevState) => {
+      const next = !prevState[routeName];
+      trackEvent(next ? 'show_route_map' : 'hide_route_map', { place, activity, route: routeName });
+      return { ...prevState, [routeName]: next };
+    });
   };
 
   const toggleActivityDescriptions = (route) => {
-    setShowActivityDescriptions((prev) => ({ ...prev, [route]: !prev[route] }));
+    setShowActivityDescriptions((prev) => {
+      const next = !prev[route];
+      trackEvent(next ? 'show_descriptions' : 'hide_descriptions', { place, activity, route });
+      return { ...prev, [route]: next };
+    });
   };
 
   const getActivityDescription = (url) => {
@@ -764,6 +782,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   href="#big-map"
                   onClick={(e) => {
                     e.preventDefault();
+                    trackEvent('select_mega_map', { place, activity, date });
                     routeRefs.current[BIG_MAP_ROUTE_KEY]?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
@@ -813,6 +832,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     href={`#${routeName}`}
                     onClick={(e) => {
                       e.preventDefault();
+                      trackEvent('select_route', { place, activity, date, route: routeName });
                       if (isMobile) {
                         setSelectedRoute(routeName);
                       } else {
@@ -827,7 +847,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     <span className="route-hit-count">{report[routeName].activityInfo.flatMap((info) => info.activityUrls).length}</span>
                   </a>
                   {isMobile && (
-                    <button className="more-info-button" onClick={() => setSelectedRoute(routeName)}>
+                    <button
+                      className="more-info-button"
+                      onClick={() => {
+                        trackEvent('select_route', { place, activity, date, route: routeName });
+                        setSelectedRoute(routeName);
+                      }}
+                    >
                       details
                     </button>
                   )}

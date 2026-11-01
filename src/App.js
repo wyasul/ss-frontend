@@ -7,6 +7,7 @@ import "./App.css";
 import moment from "moment-timezone";
 import { isMobileDevice } from "./utils";
 import { inject } from '@vercel/analytics';
+import { trackEvent, identifyUser } from './analytics';
 
 // Inject Vercel Analytics
 inject();
@@ -103,6 +104,7 @@ const App = () => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser) {
         setUser(authUser);
+        identifyUser(authUser.uid, authUser.email);
       } else {
         setUser(null);
       }
@@ -141,12 +143,19 @@ const App = () => {
   const handleActivityChange = (e) => {
     activityUserChangedRef.current = true;
     setActivity(e.target.value);
+    trackEvent('select_activity', { activity: e.target.value });
+  };
+
+  const handlePlaceChange = (e) => {
+    setPlace(e.target.value);
+    trackEvent('select_place', { place: e.target.value });
   };
 
   const handleDateChange = (e) => {
     const selectedDate = moment(e.target.value).format("YYYY-MM-DD");
     setDate(selectedDate);
     setShowDateHint(false);
+    trackEvent('select_date', { date: selectedDate });
 
     if (isMobile) {
       e.target.blur();
@@ -339,7 +348,7 @@ const App = () => {
                 name="place"
                 value="Jackson, WY"
                 checked={place === "Jackson, WY"}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={handlePlaceChange}
                 disabled={loading}
               />
               <label htmlFor="jackson">Jackson, WY</label>
@@ -351,7 +360,7 @@ const App = () => {
                 name="place"
                 value="Salt Lake City, UT"
                 checked={place === "Salt Lake City, UT"}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={handlePlaceChange}
                 disabled={loading}
               />
               <label htmlFor="slc">Salt Lake City, UT</label>
@@ -363,7 +372,7 @@ const App = () => {
                 name="place"
                 value="Rogers Pass, BC"
                 checked={place === "Rogers Pass, BC"}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={handlePlaceChange}
                 disabled={loading || activity === "trail run"}
               />
               <label htmlFor="rogers-pass">Rogers Pass, BC</label>
