@@ -426,13 +426,10 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         console.log('photo', photo);
         if (photo.lat && photo.lng) {
           const el = document.createElement('div');
-          el.className = 'photo-marker';
+          // Sizing/border live in CSS so the large map can render these as small
+          // pins that grow back to full size on hover (polylines stay readable).
+          el.className = `photo-marker${isLarge ? ' photo-marker--pin' : ''}`;
           el.style.backgroundImage = `url(${photo.photo})`;
-          el.style.width = '30px';
-          el.style.height = '30px';
-          el.style.backgroundSize = 'cover';
-          el.style.borderRadius = '50%';
-          el.style.border = '2px solid orange';
           el.dataset.url = photo.photo;
 
           const marker = new mapboxgl.Marker(el)
