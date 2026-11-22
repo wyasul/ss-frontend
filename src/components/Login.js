@@ -91,7 +91,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-content">
-        <h1>Welcome to Strava Stalker</h1>
+        <h1>StravaStalker - Conditions Beta Aggregation</h1>
         <button onClick={handleLogin} className="login-button google-button">
           Continue with Google <FaGoogle className="google-icon" />
         </button>

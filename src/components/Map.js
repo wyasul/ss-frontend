@@ -45,6 +45,8 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   const lineColor = isLarge ? '#ff6b35' : '#f75002';
   const selectedLineColor = '#5ee06a';
   const lineWidth = isLarge ? 2.5 : 4;
+  const hoveredLineWidth = lineWidth + 3;
+  const hitAreaWidth = 20;
   const casingWidth = isLarge ? 5 : 0;
   const [mapError, setMapError] = useState(null);
 
@@ -212,25 +214,43 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
         },
       });
 
+      // Invisible wide line on top of the visible one so routes are easy to
+      // hover/click without needing pixel-perfect aim.
+      map.current.addLayer({
+        id: `${layerId}-hit`,
+        type: 'line',
+        source: sourceId,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': lineColor,
+          'line-width': hitAreaWidth,
+          'line-opacity': 0,
+        },
+      });
+
       setupPolylineInteractions(layerId, polylineIndex);
     });
   };
 
   const setupPolylineInteractions = (layerId, polylineIndex) => {
     if (!map.current || !mapContainer.current) return;
-    map.current.on('mouseenter', layerId, e => {
+    const hitLayerId = `${layerId}-hit`;
+    map.current.on('mouseenter', hitLayerId, e => {
       console.log('entering polyline, isPhotoHovered:', isPhotoHoveredRef.current);
       if (!isPhotoHoveredRef.current) {
         handleMouseEnter(e, layerId, polylineIndex);
       }
     });
-    map.current.on('mouseleave', layerId, () => {
+    map.current.on('mouseleave', hitLayerId, () => {
       console.log('exiting polyline, isPhotoHovered:', isPhotoHoveredRef.current);
       if (!isPhotoHoveredRef.current) {
         handleMouseLeave(layerId);
       }
     });
-    map.current.on('click', layerId, () => handlePolylineClick(polylineIndex));
+    map.current.on('click', hitLayerId, () => handlePolylineClick(polylineIndex));
 
     mapContainer.current.addEventListener(`mouseenter-${mapId}-${polylineIndex}`, event => handleCustomMouseEnter(event, layerId));
     mapContainer.current.addEventListener(`mouseleave-${mapId}-${polylineIndex}`, event => handleCustomMouseLeave(event, layerId));
@@ -247,6 +267,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     clearAllHoveredActivities();
     map.current.getCanvas().style.cursor = 'pointer';
     map.current.setPaintProperty(layerId, 'line-color', selectedLineColor);
+    map.current.setPaintProperty(layerId, 'line-width', hoveredLineWidth);
     map.current.moveLayer(layerId);
 
     const coordinates = e.lngLat;
@@ -266,6 +287,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     console.log('mouse left polyline')
     map.current.getCanvas().style.cursor = '';
     map.current.setPaintProperty(layerId, 'line-color', lineColor);
+    map.current.setPaintProperty(layerId, 'line-width', lineWidth);
     if (popupRef.current) {
       popupRef.current.remove();
       popupRef.current = null;
@@ -293,12 +315,14 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     resetPolylines();
     clearAllHoveredActivities();
     map.current.setPaintProperty(layerId, 'line-color', selectedLineColor);
+    map.current.setPaintProperty(layerId, 'line-width', hoveredLineWidth);
     map.current.moveLayer(layerId);
     highlightPhotos(event.detail.photos);
   };
 
   const handleCustomMouseLeave = (event, layerId) => {
     map.current.setPaintProperty(layerId, 'line-color', lineColor);
+    map.current.setPaintProperty(layerId, 'line-width', lineWidth);
     clearAllHoveredActivities();
     resetPhotoHighlights();
   };
@@ -314,6 +338,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     resetPolylines();
     clearAllHoveredActivities();
     map.current.setPaintProperty(layerId, 'line-color', selectedLineColor);
+    map.current.setPaintProperty(layerId, 'line-width', hoveredLineWidth);
     map.current.moveLayer(layerId);
     highlightActivityElement(activityId);
     highlightPhotos([photo]);
@@ -324,6 +349,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     console.log('Photo marker mouse leave:', polylineIndex);
     setIsPhotoHovered(false);
     map.current.setPaintProperty(layerId, 'line-color', lineColor);
+    map.current.setPaintProperty(layerId, 'line-width', lineWidth);
     clearAllHoveredActivities();
     resetPhotoHighlights();
   };
@@ -344,6 +370,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     resetPolylines();
     clearAllHoveredActivities();
     map.current.setPaintProperty(`route-${mapId}-${polylineIndex}`, 'line-color', selectedLineColor);
+    map.current.setPaintProperty(`route-${mapId}-${polylineIndex}`, 'line-width', hoveredLineWidth);
     map.current.moveLayer(`route-${mapId}-${polylineIndex}`);
     highlightActivityElement(activityId);
     highlightPhotos([photo]);
@@ -356,6 +383,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     setTimeout(() => {
       if (!isPhotoHoveredRef.current) {
         map.current.setPaintProperty(`route-${mapId}-${polylineIndex}`, 'line-color', lineColor);
+        map.current.setPaintProperty(`route-${mapId}-${polylineIndex}`, 'line-width', lineWidth);
         clearAllHoveredActivities();
         resetPhotoHighlights();
       }
@@ -367,6 +395,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
       const resetLayerId = `route-${mapId}-${index}`;
       if (map.current.getLayer(resetLayerId)) {
         map.current.setPaintProperty(resetLayerId, 'line-color', lineColor);
+        map.current.setPaintProperty(resetLayerId, 'line-width', lineWidth);
       }
     });
   };
