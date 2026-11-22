@@ -174,6 +174,7 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
           type: 'Feature',
           properties: {
             name: activityInfo[polylineIndex].activityName,
+            description: activityInfo[polylineIndex].description || '',
             activityId: `activity-${mapId}-${polylineIndex}`,
           },
           geometry: {
@@ -272,11 +273,12 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
 
     const coordinates = e.lngLat;
     const name = e.features[0].properties.name;
+    const description = e.features[0].properties.description;
     const activityId = e.features[0].properties.activityId;
 
     highlightPhotos(activityInfo[polylineIndex].photos);
     highlightActivityElement(activityId);
-    showPopup(coordinates, name);
+    showPopup(coordinates, name, description);
 
     if (isPhotoHoveredRef.current) {
       map.current.on('mouseleave', layerId, () => handleMouseLeave(layerId));
@@ -424,14 +426,32 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     }
   };
 
-  const showPopup = (coordinates, name) => {
+  const escapeHtml = (text) =>
+    String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const MAX_POPUP_DESCRIPTION_LENGTH = 140;
+
+  const showPopup = (coordinates, name, description) => {
     if (popupRef.current) {
       popupRef.current.remove();
     }
 
+    let html = `<p>${escapeHtml(name)}</p>`;
+    const desc = description ? String(description).trim() : '';
+    if (desc) {
+      const truncated = desc.length > MAX_POPUP_DESCRIPTION_LENGTH
+        ? `${escapeHtml(desc.slice(0, MAX_POPUP_DESCRIPTION_LENGTH).trimEnd())}... <em>(read more)</em>`
+        : escapeHtml(desc);
+      html += `<p class="popup-description">${truncated}</p>`;
+    }
+
     const popup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
       .setLngLat(coordinates)
-      .setHTML(`<p>${name}</p>`)
+      .setHTML(html)
       .addTo(map.current);
 
     document.querySelector('.mapboxgl-popup-content').classList.add('custom-popup');
