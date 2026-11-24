@@ -234,11 +234,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
 
-  // Easter egg: Patsy Marley toots when hovered. Synthesized (no audio asset) —
-  // a sawtooth sliding down in pitch with a fast wobble, faded out quickly.
+  // Easter egg: certain routes toot when hovered. Synthesized (no audio asset).
+  // Wet-fart recipe: a lowpassed sawtooth brap + band-passed noise splatter,
+  // both chopped by an irregular burst/gap envelope so it sputters instead of
+  // droning like a synth bass.
   const playFart = () => {
     const now = Date.now();
-    if (now - lastFartAtRef.current < 1200) return; // don't machine-gun on jittery hovers
+    if (now - lastFartAtRef.current < 120) return; // only de-dupe double-fired events
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
@@ -246,31 +248,70 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       if (ctx.state === 'suspended') ctx.resume();
       lastFartAtRef.current = now;
 
-      const t = ctx.currentTime;
-      const duration = 0.45 + Math.random() * 0.25;
+      const t0 = ctx.currentTime;
+      const duration = 0.55 + Math.random() * 0.35;
+      const tEnd = t0 + duration;
 
+      // Master gain carrying the sputter: random bursts with tiny gaps
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.0001, t0);
+      let t = t0;
+      while (t < tEnd - 0.05) {
+        const burst = 0.03 + Math.random() * 0.07;
+        const gap = 0.008 + Math.random() * 0.035;
+        const level = 0.3 + Math.random() * 0.45;
+        master.gain.linearRampToValueAtTime(level, t + burst * 0.3);
+        master.gain.linearRampToValueAtTime(level * (0.3 + Math.random() * 0.4), t + burst);
+        master.gain.linearRampToValueAtTime(0.03, t + burst + gap);
+        t += burst + gap;
+      }
+      master.gain.linearRampToValueAtTime(0.0001, tEnd);
+
+      // Low brappy tone, lowpassed so it doesn't sound like a synth
       const osc = ctx.createOscillator();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(100 + Math.random() * 30, t);
-      osc.frequency.exponentialRampToValueAtTime(40, t + duration);
-
+      osc.frequency.setValueAtTime(80 + Math.random() * 30, t0);
+      osc.frequency.exponentialRampToValueAtTime(42 + Math.random() * 12, tEnd);
       const wobble = ctx.createOscillator();
-      wobble.frequency.value = 25 + Math.random() * 15;
+      wobble.frequency.value = 16 + Math.random() * 22;
       const wobbleGain = ctx.createGain();
-      wobbleGain.gain.value = 30;
+      wobbleGain.gain.value = 38;
       wobble.connect(wobbleGain);
       wobbleGain.connect(osc.frequency);
+      const oscFilter = ctx.createBiquadFilter();
+      oscFilter.type = 'lowpass';
+      oscFilter.frequency.value = 320;
+      const oscGain = ctx.createGain();
+      oscGain.gain.value = 0.85;
+      osc.connect(oscFilter);
+      oscFilter.connect(oscGain);
+      oscGain.connect(master);
 
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.35, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      // The wet part: band-passed noise splatter sliding downward
+      const noiseLen = Math.ceil(ctx.sampleRate * duration);
+      const noiseBuf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+      const samples = noiseBuf.getChannelData(0);
+      for (let i = 0; i < noiseLen; i++) samples[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuf;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.setValueAtTime(450 + Math.random() * 350, t0);
+      noiseFilter.frequency.exponentialRampToValueAtTime(200, tEnd);
+      noiseFilter.Q.value = 1.3;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.value = 0.6;
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(master);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(t);
-      wobble.start(t);
-      osc.stop(t + duration);
-      wobble.stop(t + duration);
+      master.connect(ctx.destination);
+      osc.start(t0);
+      wobble.start(t0);
+      noise.start(t0);
+      osc.stop(tEnd + 0.05);
+      wobble.stop(tEnd + 0.05);
+      noise.stop(tEnd + 0.05);
     } catch {
       // never let the easter egg break anything
     }
