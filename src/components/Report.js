@@ -243,21 +243,50 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Easter egg: certain routes toot when hovered. Real recordings, preloaded
   // and decoded into Web Audio buffers at mount so hover playback is instant
   // (a fresh Audio element per play had fetch/decode lag).
+  // Recordings (and mp3 encoding itself) carry leading silence that reads as
+  // hover lag — find where the sound actually starts so playback can skip it.
+  const firstAudibleOffset = (buffer) => {
+    const threshold = 0.02;
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      if (Math.abs(data[i]) > threshold) {
+        return Math.max(0, i / buffer.sampleRate - 0.005);
+      }
+    }
+    return 0;
+  };
+
   useEffect(() => {
     let cancelled = false;
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return undefined;
       const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
+
       FART_SOUNDS.forEach((src, i) => {
         fetch(src)
           .then((res) => res.arrayBuffer())
           .then((data) => ctx.decodeAudioData(data))
           .then((buffer) => {
-            if (!cancelled) fartBuffersRef.current[i] = buffer;
+            if (!cancelled) fartBuffersRef.current[i] = { buffer, offset: firstAudibleOffset(buffer) };
           })
           .catch(() => {});
       });
+
+      // resume() is async; doing it lazily inside playFart delays the first
+      // toot. Resume on the first interaction instead, while nothing is listening.
+      const resumeCtx = () => {
+        if (ctx.state === 'suspended') ctx.resume();
+        window.removeEventListener('pointerdown', resumeCtx);
+        window.removeEventListener('keydown', resumeCtx);
+      };
+      window.addEventListener('pointerdown', resumeCtx);
+      window.addEventListener('keydown', resumeCtx);
+      return () => {
+        cancelled = true;
+        window.removeEventListener('pointerdown', resumeCtx);
+        window.removeEventListener('keydown', resumeCtx);
+      };
     } catch {
       // never let the easter egg break anything
     }
@@ -272,16 +301,17 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     lastFartAtRef.current = now;
     try {
       const ctx = fartCtxRef.current;
-      const buffers = fartBuffersRef.current.filter(Boolean);
-      if (!ctx || buffers.length === 0) return;
+      const sounds = fartBuffersRef.current.filter(Boolean);
+      if (!ctx || sounds.length === 0) return;
       if (ctx.state === 'suspended') ctx.resume();
+      const { buffer, offset } = sounds[Math.floor(Math.random() * sounds.length)];
       const source = ctx.createBufferSource();
-      source.buffer = buffers[Math.floor(Math.random() * buffers.length)];
+      source.buffer = buffer;
       const gain = ctx.createGain();
       gain.gain.value = 0.8;
       source.connect(gain);
       gain.connect(ctx.destination);
-      source.start();
+      source.start(0, offset);
     } catch {
       // never let the easter egg break anything
     }
