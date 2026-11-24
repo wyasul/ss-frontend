@@ -223,13 +223,42 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }
   };
 
+  // Route clicked in the last-skied menu, to navigate to once that date's report loads
+  const pendingRouteRef = useRef(null);
+
+  const navigateToRoute = (routeName) => {
+    if (isMobile) {
+      setSelectedRoute(routeName);
+    } else {
+      // Refs attach during render; scroll after paint
+      requestAnimationFrame(() => {
+        routeRefs.current[routeName]?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  };
+
   const handleLastSkiedRouteClick = (routeEntry) => {
     if (!onSelectDate) return;
     const dateStr = lastSkiedDateStr(routeEntry.lastSkied);
     trackEvent('select_last_skied_route', { place, activity, route: routeEntry.route, date: dateStr });
     setShowLastSkied(false);
-    onSelectDate(dateStr);
+    if (dateStr === date) {
+      // Same date: no refetch will happen, navigate right away
+      navigateToRoute(routeEntry.route);
+    } else {
+      pendingRouteRef.current = routeEntry.route;
+      onSelectDate(dateStr);
+    }
   };
+
+  useEffect(() => {
+    const routeName = pendingRouteRef.current;
+    if (!routeName || !report) return;
+    pendingRouteRef.current = null;
+    if (reportOrder.includes(routeName)) {
+      navigateToRoute(routeName);
+    }
+  }, [report, reportOrder]);
 
   useEffect(() => {
     if (!date) return;
