@@ -226,7 +226,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
 
+  // Deliberate navigation to a route (navbar or last-skied menu) opens its map by default
+  const openMapForRoute = (routeName) => {
+    setShowMap((prevState) => (prevState[routeName] ? prevState : { ...prevState, [routeName]: true }));
+  };
+
   const navigateToRoute = (routeName) => {
+    openMapForRoute(routeName);
     if (isMobile) {
       setSelectedRoute(routeName);
     } else {
@@ -974,6 +980,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     onClick={(e) => {
                       e.preventDefault();
                       trackEvent('select_route', { place, activity, date, route: routeName });
+                      openMapForRoute(routeName);
                       if (isMobile) {
                         setSelectedRoute(routeName);
                       } else {
@@ -992,6 +999,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       className="more-info-button"
                       onClick={() => {
                         trackEvent('select_route', { place, activity, date, route: routeName });
+                        openMapForRoute(routeName);
                         setSelectedRoute(routeName);
                       }}
                     >
