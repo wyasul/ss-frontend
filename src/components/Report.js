@@ -84,7 +84,7 @@ const getTodayLocalYYYYMMDD = () => {
   return `${y}-${m}-${day}`;
 };
 
-const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail, onSelectDate }) => {
+const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail, onSelectDate, showLastSkied, setShowLastSkied }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
   const [error, setError] = useState(null);
@@ -101,7 +101,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [featureRequestError, setFeatureRequestError] = useState(null);
   const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
   const [hideBigMap, setHideBigMap] = useState(false);
-  const [showLastSkied, setShowLastSkied] = useState(false);
   const [lastSkiedRoutes, setLastSkiedRoutes] = useState(null); // null = not fetched for this place/activity
   const [lastSkiedLoading, setLastSkiedLoading] = useState(false);
   const [lastSkiedError, setLastSkiedError] = useState(null);
@@ -205,23 +204,30 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     setLastSkiedError(null);
   }, [place, activity]);
 
-  const openLastSkied = async () => {
+  // The open button lives in App (under the date picker); fetch when the modal opens
+  useEffect(() => {
+    if (!showLastSkied) return undefined;
     trackEvent('open_last_skied', { place, activity });
-    setShowLastSkied(true);
-    if (lastSkiedRoutes) return;
-    setLastSkiedLoading(true);
-    setLastSkiedError(null);
-    try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/last-skied/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`
-      );
-      setLastSkiedRoutes(Array.isArray(res.data?.routes) ? res.data.routes : []);
-    } catch (err) {
-      setLastSkiedError('Could not load last-skied data. Try again later.');
-    } finally {
-      setLastSkiedLoading(false);
-    }
-  };
+    if (lastSkiedRoutes) return undefined;
+    let cancelled = false;
+    (async () => {
+      setLastSkiedLoading(true);
+      setLastSkiedError(null);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/last-skied/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`
+        );
+        if (!cancelled) setLastSkiedRoutes(Array.isArray(res.data?.routes) ? res.data.routes : []);
+      } catch (err) {
+        if (!cancelled) setLastSkiedError('Could not load last-skied data. Try again later.');
+      } finally {
+        if (!cancelled) setLastSkiedLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showLastSkied]);
 
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
@@ -914,9 +920,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             'Click a route to see who skied it'
           )}
         </p>
-        <button type="button" className="last-skied-nav-button" onClick={openLastSkied}>
-          When was it last skied?
-        </button>
         <ul>
           {!isMobile && report && !hideBigMap && bigMapData.polylines.length > 0 && (
             <li>
@@ -930,7 +933,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   }}
                 >
                   Mega Map
-                  <span className="mega-map-new">New</span>
                   <span className="route-hit-count">{bigMapData.polylines.length}</span>
                 </a>
               </div>
@@ -946,7 +948,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                 <div className="big-map-title-group">
                   <h2>
                     Mega Map
-                    <span className="mega-map-new">New</span>
                   </h2>
                   <p className="big-map-subtitle">All routes · tap a line for Strava</p>
                 </div>
@@ -1144,7 +1145,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       <div className="big-map-title-group">
                         <h2>
                           Mega Map
-                          <span className="mega-map-new">New</span>
                         </h2>
                         <p className="big-map-subtitle">All routes · hover to highlight</p>
                       </div>
