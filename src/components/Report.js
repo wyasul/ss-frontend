@@ -112,6 +112,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   const lastFartAtRef = useRef(0);
+  const fartCtxRef = useRef(null);
+  const fartBuffersRef = useRef([]);
   console.log(place)
 
   const bigMapData = useMemo(() => {
@@ -238,17 +240,48 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
 
-  // Easter egg: certain routes toot when hovered. Real recordings — a random
-  // one each time; a fresh Audio element per play so rapid hovers overlap.
+  // Easter egg: certain routes toot when hovered. Real recordings, preloaded
+  // and decoded into Web Audio buffers at mount so hover playback is instant
+  // (a fresh Audio element per play had fetch/decode lag).
+  useEffect(() => {
+    let cancelled = false;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return undefined;
+      const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
+      FART_SOUNDS.forEach((src, i) => {
+        fetch(src)
+          .then((res) => res.arrayBuffer())
+          .then((data) => ctx.decodeAudioData(data))
+          .then((buffer) => {
+            if (!cancelled) fartBuffersRef.current[i] = buffer;
+          })
+          .catch(() => {});
+      });
+    } catch {
+      // never let the easter egg break anything
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const playFart = () => {
     const now = Date.now();
     if (now - lastFartAtRef.current < 120) return; // only de-dupe double-fired events
     lastFartAtRef.current = now;
     try {
-      const src = FART_SOUNDS[Math.floor(Math.random() * FART_SOUNDS.length)];
-      const audio = new Audio(src);
-      audio.volume = 0.8;
-      audio.play().catch(() => {});
+      const ctx = fartCtxRef.current;
+      const buffers = fartBuffersRef.current.filter(Boolean);
+      if (!ctx || buffers.length === 0) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      const source = ctx.createBufferSource();
+      source.buffer = buffers[Math.floor(Math.random() * buffers.length)];
+      const gain = ctx.createGain();
+      gain.gain.value = 0.8;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start();
     } catch {
       // never let the easter egg break anything
     }
