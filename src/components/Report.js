@@ -1010,6 +1010,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     polylines={bigMapData.polylines}
                     mapId={BIG_MAP_MAP_ID}
                     activityInfo={bigMapData.activityInfo}
+                    onPolylineHover={(info) => handleRouteHover(String(info?.activityName || ''))}
                     photos={bigMapData.photos}
                     displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
                     setDisplayImages={(newValue) =>
@@ -1104,6 +1105,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                     )}
                     mapId={sanitizeId(selectedRoute)}
                     activityInfo={report[selectedRoute].activityInfo.flatMap(info => info.activityUrls)}
+                    onPolylineHover={() => handleRouteHover(selectedRoute)}
                     photos={report[selectedRoute].photos}
                     displayImages={displayImagesState[selectedRoute]}
                     setDisplayImages={(newValue) =>
@@ -1135,6 +1137,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         .filter((polyline) => polyline && polyline.length > 0)}
                       mapId={sanitizeId(selectedRoute)}
                       activityInfo={activityInfo.activityUrls}
+                      onPolylineHover={() => handleRouteHover(selectedRoute)}
                       photos={report[selectedRoute].photos}
                       displayImages={displayImagesState[selectedRoute]}
                       setDisplayImages={(newValue) =>
@@ -1209,6 +1212,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         polylines={bigMapData.polylines}
                         mapId={BIG_MAP_MAP_ID}
                         activityInfo={bigMapData.activityInfo}
+                        onPolylineHover={(info) => handleRouteHover(String(info?.activityName || ''))}
+                    onPolylineHover={(info) => handleRouteHover(String(info?.activityName || ''))}
                         photos={bigMapData.photos}
                         displayImages={displayImagesState[BIG_MAP_ROUTE_KEY] ?? true}
                         setDisplayImages={(newValue) =>
@@ -1252,6 +1257,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                             )}
                             mapId={sanitizeId(route)}
                             activityInfo={report[route].activityInfo.flatMap(info => info.activityUrls)}
+                            onPolylineHover={() => handleRouteHover(route)}
                             photos={report[route].photos}
                             displayImages={displayImagesState[route]}
                             setDisplayImages={(newValue) =>

@@ -33,7 +33,7 @@ const calculateAverageBearing = (polylines) => {
   return (averageBearing + 360) % 360; // Normalize to 0-360
 };
 
-const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages, onMapError, size = 'default' }) => {
+const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplayImages, onMapError, size = 'default', onPolylineHover }) => {
   const isLarge = size === 'large';
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -279,6 +279,9 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     highlightPhotos(activityInfo[polylineIndex].photos);
     highlightActivityElement(activityId);
     showPopup(coordinates, name, description);
+    if (onPolylineHover) {
+      onPolylineHover(activityInfo[polylineIndex]);
+    }
 
     if (isPhotoHoveredRef.current) {
       map.current.on('mouseleave', layerId, () => handleMouseLeave(layerId));
