@@ -357,6 +357,10 @@ const App = () => {
         isMobile={isMobile}
         hideNavbar={showHelpModal}
         submitterEmail={user?.email ?? null}
+        onSelectDate={(d) => {
+          setDate(d);
+          setShowDateHint(false);
+        }}
       />
     </div>
   );

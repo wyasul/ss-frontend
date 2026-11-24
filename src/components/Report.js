@@ -46,6 +46,23 @@ const reportHasActivityData = (report, reportOrder) => {
 const FEATURE_REQUEST_TO =
   process.env.REACT_APP_FEATURE_REQUEST_EMAIL || 'wyattsullivan02@gmail.com';
 
+// Local dev: REACT_APP_API_BASE_URL=http://localhost:3000 npm start
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || 'https://stravastalker-05fece4b00b5.herokuapp.com';
+
+// "2026-11-22T07:00:00Z" (MST start-of-day) → "2026-11-22"
+const lastSkiedDateStr = (lastSkied) => String(lastSkied).slice(0, 10);
+
+const lastSkiedLabel = (lastSkied) => {
+  const dateStr = lastSkiedDateStr(lastSkied);
+  const daysAgo = Math.round(
+    (Date.parse(getTodayLocalYYYYMMDD()) - Date.parse(dateStr)) / 86400000
+  );
+  if (daysAgo <= 0) return 'today';
+  if (daysAgo === 1) return 'yesterday';
+  return `${daysAgo} days ago`;
+};
+
 /** Inclusive YYYY-MM-DD range (string compare is valid for ISO dates). */
 const isSiteMaintenanceWindow2026 = (dateStr) =>
   dateStr >= '2026-04-22' && dateStr <= '2026-04-26';
@@ -67,7 +84,7 @@ const getTodayLocalYYYYMMDD = () => {
   return `${y}-${m}-${day}`;
 };
 
-const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail }) => {
+const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail, onSelectDate }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
   const [error, setError] = useState(null);
@@ -84,6 +101,10 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [featureRequestError, setFeatureRequestError] = useState(null);
   const [expandedPhotoSrc, setExpandedPhotoSrc] = useState(null);
   const [hideBigMap, setHideBigMap] = useState(false);
+  const [showLastSkied, setShowLastSkied] = useState(false);
+  const [lastSkiedRoutes, setLastSkiedRoutes] = useState(null); // null = not fetched for this place/activity
+  const [lastSkiedLoading, setLastSkiedLoading] = useState(false);
+  const [lastSkiedError, setLastSkiedError] = useState(null);
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   console.log(place)
@@ -178,18 +199,47 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     return () => window.removeEventListener('keydown', onKey);
   }, [showFeatureRequest]);
 
+  // Last-skied data is per place/activity, not per date — refetch only when those change
+  useEffect(() => {
+    setLastSkiedRoutes(null);
+    setLastSkiedError(null);
+  }, [place, activity]);
+
+  const openLastSkied = async () => {
+    trackEvent('open_last_skied', { place, activity });
+    setShowLastSkied(true);
+    if (lastSkiedRoutes) return;
+    setLastSkiedLoading(true);
+    setLastSkiedError(null);
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/api/last-skied/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`
+      );
+      setLastSkiedRoutes(Array.isArray(res.data?.routes) ? res.data.routes : []);
+    } catch (err) {
+      setLastSkiedError('Could not load last-skied data. Try again later.');
+    } finally {
+      setLastSkiedLoading(false);
+    }
+  };
+
+  const handleLastSkiedRouteClick = (routeEntry) => {
+    if (!onSelectDate) return;
+    const dateStr = lastSkiedDateStr(routeEntry.lastSkied);
+    trackEvent('select_last_skied_route', { place, activity, route: routeEntry.route, date: dateStr });
+    setShowLastSkied(false);
+    onSelectDate(dateStr);
+  };
+
   useEffect(() => {
     if (!date) return;
-    
+
     const fetchReport = async () => {
       setExpandedPhotoSrc(null);
       setLoading(true);
       setError(null);
       try {
-        const apiBaseUrl = 'https://stravastalker-05fece4b00b5.herokuapp.com';
-        // const apiBaseUrl = 'http://localhost:3000';
-
-        const response = await axios.get(`${apiBaseUrl}/api/report/${place}/${activity}?date=${date}`);
+        const response = await axios.get(`${API_BASE_URL}/api/report/${place}/${activity}?date=${date}`);
         if (response.data === 'No activities yet today.') {
           setReport({});
           setReportOrder([]);
@@ -377,6 +427,61 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Rendered on every state (loading, error, empty, loaded) so help is always reachable.
   const helpModals = (
     <>
+      {showLastSkied && (
+        <div
+          className="rate-limit-modal-overlay"
+          onClick={() => setShowLastSkied(false)}
+          role="dialog"
+          aria-label="Last skied"
+        >
+          <div
+            className="rate-limit-modal-content last-skied-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="rate-limit-modal-close"
+              onClick={() => setShowLastSkied(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="rate-limit-modal-title">Last skied — {place}</h3>
+            {lastSkiedLoading && <p className="rate-limit-modal-text">Loading…</p>}
+            {lastSkiedError && <p className="rate-limit-modal-text">{lastSkiedError}</p>}
+            {!lastSkiedLoading && !lastSkiedError && lastSkiedRoutes && (
+              lastSkiedRoutes.length === 0 ? (
+                <p className="rate-limit-modal-text">No activity found on any route in the last 90 days.</p>
+              ) : (
+                <>
+                  <p className="rate-limit-modal-text last-skied-hint">
+                    Based on activities we've seen on Strava. Click a route to jump to that day's report.
+                  </p>
+                  <ul className="last-skied-list">
+                    {lastSkiedRoutes.map((entry) => (
+                      <li key={entry.route}>
+                        <button
+                          type="button"
+                          className="last-skied-row"
+                          onClick={() => handleLastSkiedRouteClick(entry)}
+                        >
+                          <span className="last-skied-route">{entry.route}</span>
+                          <span className="last-skied-when">
+                            {lastSkiedLabel(entry.lastSkied)}
+                            <span className="last-skied-hits">
+                              {' '}· {entry.numHits} {entry.numHits === 1 ? 'skier' : 'skiers'}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )
+            )}
+          </div>
+        </div>
+      )}
       {showHowItWorks && (
         <div
           className="rate-limit-modal-overlay"
@@ -513,6 +618,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   const helpButtonsRow = (
     <div className="help-buttons-container">
+      <button
+        type="button"
+        className="rate-limit-help-button"
+        onClick={openLastSkied}
+      >
+        When was it last skied?
+      </button>
       <button
         type="button"
         className="rate-limit-help-button"

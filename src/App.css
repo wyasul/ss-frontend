@@ -1698,6 +1698,58 @@ body, html {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;
   }
   
+  .last-skied-modal-content {
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+
+  .last-skied-hint {
+    opacity: 0.85;
+    font-size: 0.9em;
+  }
+
+  .last-skied-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .last-skied-list li + li {
+    border-top: 1px solid rgba(241, 111, 11, 0.25);
+  }
+
+  .last-skied-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    width: 100%;
+    padding: 10px 4px;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .last-skied-row:hover {
+    background-color: rgba(241, 111, 11, 0.12);
+  }
+
+  .last-skied-route {
+    font-weight: bold;
+  }
+
+  .last-skied-when {
+    white-space: nowrap;
+  }
+
+  .last-skied-hits {
+    opacity: 0.75;
+    font-size: 0.85em;
+  }
+
   .mapboxgl-popup-content .popup-description {
     margin: 2px 0 8px !important;
     font-weight: normal !important;
