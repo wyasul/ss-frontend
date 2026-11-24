@@ -106,6 +106,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [lastSkiedError, setLastSkiedError] = useState(null);
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
+  const fartCtxRef = useRef(null);
+  const lastFartAtRef = useRef(0);
   console.log(place)
 
   const bigMapData = useMemo(() => {
@@ -231,6 +233,58 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
+
+  // Easter egg: Patsy Marley toots when hovered. Synthesized (no audio asset) —
+  // a sawtooth sliding down in pitch with a fast wobble, faded out quickly.
+  const playFart = () => {
+    const now = Date.now();
+    if (now - lastFartAtRef.current < 1200) return; // don't machine-gun on jittery hovers
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
+      if (ctx.state === 'suspended') ctx.resume();
+      lastFartAtRef.current = now;
+
+      const t = ctx.currentTime;
+      const duration = 0.45 + Math.random() * 0.25;
+
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100 + Math.random() * 30, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + duration);
+
+      const wobble = ctx.createOscillator();
+      wobble.frequency.value = 25 + Math.random() * 15;
+      const wobbleGain = ctx.createGain();
+      wobbleGain.gain.value = 30;
+      wobble.connect(wobbleGain);
+      wobbleGain.connect(osc.frequency);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      wobble.start(t);
+      osc.stop(t + duration);
+      wobble.stop(t + duration);
+    } catch {
+      // never let the easter egg break anything
+    }
+  };
+
+  const FART_ROUTES = ['patsy', 'albion'];
+  const isFartRoute = (routeName) =>
+    FART_ROUTES.some((name) => String(routeName).toLowerCase().includes(name));
+
+  const handleRouteHover = (routeName) => {
+    if (!isFartRoute(routeName)) return;
+    trackEvent('route_fart', { place, activity, route: routeName });
+    playFart();
+  };
 
   // Deliberate navigation to a route (navbar or last-skied menu) opens its map by default
   const openMapForRoute = (routeName) => {
@@ -974,6 +1028,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                 <div className="route-bar">
                   <a
                     href={`#${routeName}`}
+                    onMouseEnter={() => handleRouteHover(routeName)}
                     onClick={(e) => {
                       e.preventDefault();
                       trackEvent('select_route', { place, activity, date, route: routeName });
