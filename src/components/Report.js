@@ -4,9 +4,9 @@ import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 import { trackEvent } from '../analytics';
-import fart1 from '../assets/fart1.mp3';
-import fart2 from '../assets/fart2.mp3';
-import fart3 from '../assets/fart3.mp3';
+import fart1 from '../assets/fart1.wav';
+import fart2 from '../assets/fart2.wav';
+import fart3 from '../assets/fart3.wav';
 
 const FART_SOUNDS = [fart1, fart2, fart3];
 
