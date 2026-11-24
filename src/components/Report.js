@@ -4,6 +4,11 @@ import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 import { trackEvent } from '../analytics';
+import fart1 from '../assets/fart1.mp3';
+import fart2 from '../assets/fart2.mp3';
+import fart3 from '../assets/fart3.mp3';
+
+const FART_SOUNDS = [fart1, fart2, fart3];
 
 const emojiSets = {
   'trail run': ["🏃‍♂️", "🏃‍♀️"],
@@ -106,7 +111,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [lastSkiedError, setLastSkiedError] = useState(null);
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
-  const fartCtxRef = useRef(null);
   const lastFartAtRef = useRef(0);
   console.log(place)
 
@@ -234,84 +238,17 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
 
-  // Easter egg: certain routes toot when hovered. Synthesized (no audio asset).
-  // Wet-fart recipe: a lowpassed sawtooth brap + band-passed noise splatter,
-  // both chopped by an irregular burst/gap envelope so it sputters instead of
-  // droning like a synth bass.
+  // Easter egg: certain routes toot when hovered. Real recordings — a random
+  // one each time; a fresh Audio element per play so rapid hovers overlap.
   const playFart = () => {
     const now = Date.now();
     if (now - lastFartAtRef.current < 120) return; // only de-dupe double-fired events
+    lastFartAtRef.current = now;
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
-      if (ctx.state === 'suspended') ctx.resume();
-      lastFartAtRef.current = now;
-
-      const t0 = ctx.currentTime;
-      const duration = 0.55 + Math.random() * 0.35;
-      const tEnd = t0 + duration;
-
-      // Master gain carrying the sputter: random bursts with tiny gaps
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(0.0001, t0);
-      let t = t0;
-      while (t < tEnd - 0.05) {
-        const burst = 0.03 + Math.random() * 0.07;
-        const gap = 0.008 + Math.random() * 0.035;
-        const level = 0.3 + Math.random() * 0.45;
-        master.gain.linearRampToValueAtTime(level, t + burst * 0.3);
-        master.gain.linearRampToValueAtTime(level * (0.3 + Math.random() * 0.4), t + burst);
-        master.gain.linearRampToValueAtTime(0.03, t + burst + gap);
-        t += burst + gap;
-      }
-      master.gain.linearRampToValueAtTime(0.0001, tEnd);
-
-      // Low brappy tone, lowpassed so it doesn't sound like a synth
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(80 + Math.random() * 30, t0);
-      osc.frequency.exponentialRampToValueAtTime(42 + Math.random() * 12, tEnd);
-      const wobble = ctx.createOscillator();
-      wobble.frequency.value = 16 + Math.random() * 22;
-      const wobbleGain = ctx.createGain();
-      wobbleGain.gain.value = 38;
-      wobble.connect(wobbleGain);
-      wobbleGain.connect(osc.frequency);
-      const oscFilter = ctx.createBiquadFilter();
-      oscFilter.type = 'lowpass';
-      oscFilter.frequency.value = 320;
-      const oscGain = ctx.createGain();
-      oscGain.gain.value = 0.85;
-      osc.connect(oscFilter);
-      oscFilter.connect(oscGain);
-      oscGain.connect(master);
-
-      // The wet part: band-passed noise splatter sliding downward
-      const noiseLen = Math.ceil(ctx.sampleRate * duration);
-      const noiseBuf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
-      const samples = noiseBuf.getChannelData(0);
-      for (let i = 0; i < noiseLen; i++) samples[i] = Math.random() * 2 - 1;
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuf;
-      const noiseFilter = ctx.createBiquadFilter();
-      noiseFilter.type = 'bandpass';
-      noiseFilter.frequency.setValueAtTime(450 + Math.random() * 350, t0);
-      noiseFilter.frequency.exponentialRampToValueAtTime(200, tEnd);
-      noiseFilter.Q.value = 1.3;
-      const noiseGain = ctx.createGain();
-      noiseGain.gain.value = 0.6;
-      noise.connect(noiseFilter);
-      noiseFilter.connect(noiseGain);
-      noiseGain.connect(master);
-
-      master.connect(ctx.destination);
-      osc.start(t0);
-      wobble.start(t0);
-      noise.start(t0);
-      osc.stop(tEnd + 0.05);
-      wobble.stop(tEnd + 0.05);
-      noise.stop(tEnd + 0.05);
+      const src = FART_SOUNDS[Math.floor(Math.random() * FART_SOUNDS.length)];
+      const audio = new Audio(src);
+      audio.volume = 0.8;
+      audio.play().catch(() => {});
     } catch {
       // never let the easter egg break anything
     }
