@@ -22,7 +22,6 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState(null);
-  const [showDateHint, setShowDateHint] = useState(true);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [helpModalShouldShow, setHelpModalShouldShow] = useState(false);
@@ -103,7 +102,6 @@ const App = () => {
   const handleDateChange = (e) => {
     const selectedDate = moment(e.target.value).format("YYYY-MM-DD");
     setDate(selectedDate);
-    setShowDateHint(false);
     trackEvent('select_date', { date: selectedDate });
 
     if (isMobile) {
@@ -334,19 +332,12 @@ const App = () => {
             type="date"
             value={date}
             onChange={handleDateChange}
-            onFocus={() => setShowDateHint(false)}
             disabled={loading}
           />
           {isSelectedDateYesterday && (
             <div className="date-relative-label">(yesterday)</div>
           )}
         </div>
-        {showDateHint && (
-          <div className="date-hint">
-            <span className="arrow">↑</span>
-            <span>change date</span>
-          </div>
-        )}
       </div>
       <Report
         activity={activity}
@@ -357,10 +348,7 @@ const App = () => {
         isMobile={isMobile}
         hideNavbar={showHelpModal}
         submitterEmail={user?.email ?? null}
-        onSelectDate={(d) => {
-          setDate(d);
-          setShowDateHint(false);
-        }}
+        onSelectDate={setDate}
       />
     </div>
   );

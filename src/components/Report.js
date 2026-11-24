@@ -656,13 +656,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       <button
         type="button"
         className="rate-limit-help-button"
-        onClick={openLastSkied}
-      >
-        When was it last skied?
-      </button>
-      <button
-        type="button"
-        className="rate-limit-help-button"
         onClick={() => {
           trackEvent('open_how_it_works');
           setShowHowItWorks(true);
@@ -921,6 +914,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             'Click a route to see who skied it'
           )}
         </p>
+        <button type="button" className="last-skied-nav-button" onClick={openLastSkied}>
+          When was it last skied?
+        </button>
         <ul>
           {!isMobile && report && !hideBigMap && bigMapData.polylines.length > 0 && (
             <li>
