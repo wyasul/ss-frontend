@@ -1714,6 +1714,74 @@ body, html {
     cursor: default;
   }
 
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .all-routes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .all-routes-row {
+    padding: 10px 4px;
+    text-align: left;
+  }
+
+  .all-routes-row + .all-routes-row {
+    border-top: 1px solid rgba(241, 111, 11, 0.25);
+  }
+
+  .all-routes-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 6px;
+  }
+
+  .all-routes-when {
+    opacity: 0.75;
+    font-size: 0.85em;
+    font-weight: normal;
+    white-space: nowrap;
+  }
+
+  .all-routes-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .route-date-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: #f16f0b;
+    font: inherit;
+    font-size: 0.85em;
+    cursor: pointer;
+    background: rgba(241, 111, 11, 0.1);
+    border: 1px solid rgba(241, 111, 11, 0.35);
+    transition: all 0.2s ease;
+  }
+
+  .route-date-chip:hover {
+    background: rgba(241, 111, 11, 0.25);
+    border-color: rgba(241, 111, 11, 0.7);
+  }
+
+  .route-date-chip-hits {
+    opacity: 0.7;
+    font-size: 0.85em;
+  }
+
   .last-skied-modal-content {
     max-height: 75vh;
     overflow-y: auto;

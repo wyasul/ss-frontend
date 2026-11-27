@@ -23,6 +23,7 @@ const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState(null);
   const [showLastSkied, setShowLastSkied] = useState(false);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [helpModalVisible, setHelpModalVisible] = useState(false);
   const [helpModalShouldShow, setHelpModalShouldShow] = useState(false);
@@ -339,14 +340,24 @@ const App = () => {
             <div className="date-relative-label">(yesterday)</div>
           )}
         </div>
-        <button
-          type="button"
-          className="last-skied-cta"
-          onClick={() => setShowLastSkied(true)}
-          disabled={loading}
-        >
-          When was it last skied?
-        </button>
+        <div className="cta-row">
+          <button
+            type="button"
+            className="last-skied-cta"
+            onClick={() => setShowLastSkied(true)}
+            disabled={loading}
+          >
+            When was it last skied?
+          </button>
+          <button
+            type="button"
+            className="last-skied-cta"
+            onClick={() => setShowAllRoutes(true)}
+            disabled={loading}
+          >
+            All routes
+          </button>
+        </div>
       </div>
       <Report
         activity={activity}
@@ -360,6 +371,8 @@ const App = () => {
         onSelectDate={setDate}
         showLastSkied={showLastSkied}
         setShowLastSkied={setShowLastSkied}
+        showAllRoutes={showAllRoutes}
+        setShowAllRoutes={setShowAllRoutes}
       />
     </div>
   );

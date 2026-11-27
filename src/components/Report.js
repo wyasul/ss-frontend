@@ -118,7 +118,7 @@ const getTodayLocalYYYYMMDD = () => {
   return `${y}-${m}-${day}`;
 };
 
-const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail, onSelectDate, showLastSkied, setShowLastSkied }) => {
+const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavbar, submitterEmail, onSelectDate, showLastSkied, setShowLastSkied, showAllRoutes, setShowAllRoutes }) => {
   const [report, setReport] = useState(null);
   const [reportOrder, setReportOrder] = useState([]); // explicit order: most photos first, 10420 last
   const [error, setError] = useState(null);
@@ -138,6 +138,9 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [lastSkiedRoutes, setLastSkiedRoutes] = useState(null); // null = not fetched for this place/activity
   const [lastSkiedLoading, setLastSkiedLoading] = useState(false);
   const [lastSkiedError, setLastSkiedError] = useState(null);
+  const [allRoutesData, setAllRoutesData] = useState(null); // null = not fetched for this place/activity
+  const [allRoutesLoading, setAllRoutesLoading] = useState(false);
+  const [allRoutesError, setAllRoutesError] = useState(null);
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   const lastFartAtRef = useRef(0);
@@ -240,6 +243,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   useEffect(() => {
     setLastSkiedRoutes(null);
     setLastSkiedError(null);
+    setAllRoutesData(null);
+    setAllRoutesError(null);
   }, [place, activity]);
 
   // The open button lives in App (under the date picker); fetch when the modal opens
@@ -266,6 +271,30 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       cancelled = true;
     };
   }, [showLastSkied]);
+
+  useEffect(() => {
+    if (!showAllRoutes) return undefined;
+    trackEvent('open_all_routes', { place, activity });
+    if (allRoutesData) return undefined;
+    let cancelled = false;
+    (async () => {
+      setAllRoutesLoading(true);
+      setAllRoutesError(null);
+      try {
+        const res = await axios.get(
+          `${API_BASE_URL}/api/route-history/${encodeURIComponent(place)}/${encodeURIComponent(activity)}?days=14`
+        );
+        if (!cancelled) setAllRoutesData(Array.isArray(res.data?.routes) ? res.data.routes : []);
+      } catch (err) {
+        if (!cancelled) setAllRoutesError('Could not load route history. Try again later.');
+      } finally {
+        if (!cancelled) setAllRoutesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showAllRoutes]);
 
   // Route clicked in the last-skied menu, to navigate to once that date's report loads
   const pendingRouteRef = useRef(null);
@@ -399,6 +428,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       navigateToRoute(routeEntry.route);
     } else {
       pendingRouteRef.current = routeEntry.route;
+      onSelectDate(dateStr);
+    }
+  };
+
+  const handleRouteDateClick = (routeName, rawDate) => {
+    if (!onSelectDate) return;
+    const dateStr = lastSkiedDateStr(rawDate);
+    trackEvent('select_all_routes_date', { place, activity, route: routeName, date: dateStr });
+    setShowAllRoutes(false);
+    if (dateStr === date) {
+      navigateToRoute(routeName);
+    } else {
+      pendingRouteRef.current = routeName;
       onSelectDate(dateStr);
     }
   };
@@ -654,6 +696,69 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                             </span>
                           </span>
                         </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )
+            )}
+          </div>
+        </div>
+      )}
+      {showAllRoutes && (
+        <div
+          className="rate-limit-modal-overlay"
+          onClick={() => setShowAllRoutes(false)}
+          role="dialog"
+          aria-label="All routes"
+        >
+          <div
+            className="rate-limit-modal-content last-skied-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="rate-limit-modal-close"
+              onClick={() => setShowAllRoutes(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="rate-limit-modal-title">All routes — {place}</h3>
+            {allRoutesLoading && <p className="rate-limit-modal-text">Loading…</p>}
+            {allRoutesError && <p className="rate-limit-modal-text">{allRoutesError}</p>}
+            {!allRoutesLoading && !allRoutesError && allRoutesData && (
+              allRoutesData.length === 0 ? (
+                <p className="rate-limit-modal-text">No activity found on any route in the last 2 weeks.</p>
+              ) : (
+                <>
+                  <p className="rate-limit-modal-text last-skied-hint">
+                    Days each route was skied in the last 2 weeks. Click a date to open that day's report.
+                  </p>
+                  <ul className="all-routes-list">
+                    {allRoutesData.map((entry) => (
+                      <li key={entry.route} className="all-routes-row">
+                        <div className="all-routes-name">
+                          <span className="last-skied-route">{entry.route}</span>
+                          <span className="all-routes-when">{lastSkiedLabel(entry.lastSkied)}</span>
+                        </div>
+                        <div className="all-routes-dates">
+                          {entry.dates.map((d) => {
+                            const ds = lastSkiedDateStr(d.date);
+                            return (
+                              <button
+                                key={ds}
+                                type="button"
+                                className="route-date-chip"
+                                onClick={() => handleRouteDateClick(entry.route, d.date)}
+                                title={`${d.numHits} ${d.numHits === 1 ? 'skier' : 'skiers'}`}
+                              >
+                                {ds.slice(5).replace('-', '/')}
+                                <span className="route-date-chip-hits">{d.numHits}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </li>
                     ))}
                   </ul>
