@@ -4,12 +4,40 @@ import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 import { trackEvent } from '../analytics';
-import fart1 from '../assets/fart1.wav';
-import fart2 from '../assets/fart2.wav';
-import fart3 from '../assets/fart3.wav';
-import fart4 from '../assets/fart4.wav';
+import fart1 from '../assets/sounds/fart1.wav';
+import fart2 from '../assets/sounds/fart2.wav';
+import fart3 from '../assets/sounds/fart3.wav';
+import fart4 from '../assets/sounds/fart4.wav';
+import doIt from '../assets/sounds/do-it.wav';
+import rightOn from '../assets/sounds/right-on.wav';
+import yesScience from '../assets/sounds/yes-science.wav';
+import tooRisky from '../assets/sounds/too-risky.wav';
+import scarface from '../assets/sounds/scarface.wav';
+import whateverMan from '../assets/sounds/whatever-man.wav';
+import tacoCabeza from '../assets/sounds/taco-cabeza.wav';
+import helloSir from '../assets/sounds/hello-sir.wav';
+import slingingDope from '../assets/sounds/slinging-dope.wav';
+import gunOnMe from '../assets/sounds/gun-on-me.wav';
+import methFairies from '../assets/sounds/meth-fairies.wav';
 
 const FART_SOUNDS = [fart1, fart2, fart3, fart4];
+
+// Per-route hover clips. `match` gets the lowercased route name (big-map names
+// are "Route: Activity", so substring/word-boundary matches cover both).
+const ROUTE_CLIPS = [
+  { key: 'do-it', src: doIt, match: (n) => n.includes('tanner') },
+  { key: 'right-on', src: rightOn, match: (n) => n.includes('grunge') },
+  { key: 'yes-science', src: yesScience, match: (n) => n.includes('cold fusion') },
+  { key: 'too-risky', src: tooRisky, match: (n) => n.includes('medusa') },
+  { key: 'scarface', src: scarface, match: (n) => /\bthe y\b/.test(n) },
+  { key: 'whatever-man', src: whateverMan, match: (n) => n.includes('pfeiff') },
+  { key: 'taco-cabeza', src: tacoCabeza, match: (n) => n.includes('pipeline') },
+  { key: 'hello-sir', src: helloSir, match: (n) => n.includes('memorial') },
+  { key: 'slinging-dope', src: slingingDope, match: (n) => n.includes('little pine') },
+  // word-boundary: bare 'aire' would also match e.g. "prairie"
+  { key: 'gun-on-me', src: gunOnMe, match: (n) => /\baire\b/.test(n) },
+  { key: 'meth-fairies', src: methFairies, match: (n) => n.includes('coalpit') },
+];
 
 const emojiSets = {
   'trail run': ["🏃‍♂️", "🏃‍♀️"],
@@ -115,6 +143,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const lastFartAtRef = useRef(0);
   const fartCtxRef = useRef(null);
   const fartBuffersRef = useRef([]);
+  const routeClipBuffersRef = useRef({});
   console.log(place)
 
   const bigMapData = useMemo(() => {
@@ -264,15 +293,19 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
       if (!AudioCtx) return undefined;
       const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
 
-      FART_SOUNDS.forEach((src, i) => {
+      const loadSound = (src, store) => {
         fetch(src)
           .then((res) => res.arrayBuffer())
           .then((data) => ctx.decodeAudioData(data))
           .then((buffer) => {
-            if (!cancelled) fartBuffersRef.current[i] = { buffer, offset: firstAudibleOffset(buffer) };
+            if (!cancelled) store({ buffer, offset: firstAudibleOffset(buffer) });
           })
           .catch(() => {});
-      });
+      };
+      FART_SOUNDS.forEach((src, i) => loadSound(src, (sound) => { fartBuffersRef.current[i] = sound; }));
+      ROUTE_CLIPS.forEach((clip) =>
+        loadSound(clip.src, (sound) => { routeClipBuffersRef.current[clip.key] = sound; })
+      );
 
       // resume() is async; doing it lazily inside playFart delays the first
       // toot. Resume on the first interaction instead, while nothing is listening.
@@ -296,26 +329,30 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     };
   }, []);
 
-  const playFart = () => {
+  const playSound = (sound) => {
     const now = Date.now();
     if (now - lastFartAtRef.current < 120) return; // only de-dupe double-fired events
     lastFartAtRef.current = now;
     try {
       const ctx = fartCtxRef.current;
-      const sounds = fartBuffersRef.current.filter(Boolean);
-      if (!ctx || sounds.length === 0) return;
+      if (!ctx || !sound) return;
       if (ctx.state === 'suspended') ctx.resume();
-      const { buffer, offset } = sounds[Math.floor(Math.random() * sounds.length)];
       const source = ctx.createBufferSource();
-      source.buffer = buffer;
+      source.buffer = sound.buffer;
       const gain = ctx.createGain();
       gain.gain.value = 0.8;
       source.connect(gain);
       gain.connect(ctx.destination);
-      source.start(0, offset);
+      source.start(0, sound.offset);
     } catch {
       // never let the easter egg break anything
     }
+  };
+
+  const playFart = () => {
+    const sounds = fartBuffersRef.current.filter(Boolean);
+    if (sounds.length === 0) return;
+    playSound(sounds[Math.floor(Math.random() * sounds.length)]);
   };
 
   const FART_ROUTES = ['patsy', 'albion'];
@@ -323,6 +360,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     FART_ROUTES.some((name) => String(routeName).toLowerCase().includes(name));
 
   const handleRouteHover = (routeName) => {
+    const name = String(routeName).toLowerCase();
+    const clip = ROUTE_CLIPS.find((c) => c.match(name));
+    if (clip) {
+      trackEvent('route_sound', { place, activity, route: routeName, sound: clip.key });
+      playSound(routeClipBuffersRef.current[clip.key]);
+      return;
+    }
     if (!isFartRoute(routeName)) return;
     trackEvent('route_fart', { place, activity, route: routeName });
     playFart();
