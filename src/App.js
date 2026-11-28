@@ -27,6 +27,29 @@ const urlActivity = VALID_ACTIVITIES.includes(urlParams.get('activity')) ? urlPa
 const urlDate = /^\d{4}-\d{2}-\d{2}$/.test(urlParams.get('date') || '') ? urlParams.get('date') : null;
 
 const DANGER_LABELS = { '-1': 'No rating', 1: 'Low', 2: 'Moderate', 3: 'Considerable', 4: 'High', 5: 'Extreme' };
+const DANGER_COLORS = { '-1': '#888888', 0: '#888888', 1: '#50b848', 2: '#fff200', 3: '#f7941e', 4: '#ed1c24', 5: '#221e1f' };
+
+// Simplified danger rose: a mountain split into three elevation bands,
+// colored with the standard danger-scale colors (apex = alpine).
+const AvyRose = ({ bands }) => {
+  const edge = (y) => (45 * (y - 5)) / 80;
+  const bandPath = (y1, y2) =>
+    `M ${50 - edge(y2)} ${y2} L ${50 - edge(y1)} ${y1} L ${50 + edge(y1)} ${y1} L ${50 + edge(y2)} ${y2} Z`;
+  const ys = [5, 32, 58, 85];
+  return (
+    <svg viewBox="0 0 100 90" className="avy-rose" aria-hidden="true">
+      {['alp', 'tln', 'btl'].map((k, i) => (
+        <path
+          key={k}
+          d={bandPath(ys[i], ys[i + 1])}
+          fill={DANGER_COLORS[bands[k]?.level ?? -1]}
+          stroke="rgba(0,0,0,0.55)"
+          strokeWidth="1.5"
+        />
+      ))}
+    </svg>
+  );
+};
 
 const App = () => {
   const [activity, setActivity] = useState(urlActivity || "backcountry ski");
@@ -402,13 +425,37 @@ const App = () => {
             rel="noreferrer"
             title={avy.travelAdvice || ''}
           >
-            <span className="avy-dot" />
-            <span>
-              Avalanche danger today:{' '}
-              <strong>{DANGER_LABELS[avy.dangerLevel] || avy.danger}</strong>
-              {avy.dangerLevel > 0 && ` (${avy.dangerLevel}/5)`}
-              {' '}— {avy.zone} · {avy.source}
-            </span>
+            <div className="avy-summary">
+              <span className="avy-dot" />
+              <span>
+                Avalanche danger today:{' '}
+                <strong>{DANGER_LABELS[avy.dangerLevel] || avy.danger}</strong>
+                {avy.dangerLevel > 0 && ` (${avy.dangerLevel}/5)`}
+                {' '}— {avy.zone} · {avy.source}
+              </span>
+            </div>
+            {avy.bands && (
+              <div className="avy-rose-row">
+                <AvyRose bands={avy.bands} />
+                <div className="avy-bands">
+                  {['alp', 'tln', 'btl'].map((k) =>
+                    avy.bands[k] ? (
+                      <div key={k} className="avy-band-line">
+                        <span
+                          className="avy-band-dot"
+                          style={{ background: DANGER_COLORS[avy.bands[k].level ?? -1] }}
+                        />
+                        {avy.bands[k].band}:{' '}
+                        {avy.bands[k].rating || DANGER_LABELS[avy.bands[k].level] || '—'}
+                      </div>
+                    ) : null
+                  )}
+                  {avy.bandsAreOverall && (
+                    <div className="avy-band-note">overall rating — per-elevation not published yet</div>
+                  )}
+                </div>
+              </div>
+            )}
           </a>
         )}
       </div>
