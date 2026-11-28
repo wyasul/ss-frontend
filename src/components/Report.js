@@ -272,7 +272,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     return (
       <div className="route-snow-line">
         <span className="snow-chip">❄ past week: {cmToIn(snow.past7Cm)}″</span>
-        <span className="snow-chip">next 3 days: {cmToIn(snow.next3Cm)}″</span>
+        <span className="snow-chip">❄ next 3 days: {cmToIn(snow.next3Cm)}″</span>
         {snow.elevation != null && (
           <span className="snow-chip">{Math.round(snow.elevation * 3.28084).toLocaleString()} ft</span>
         )}
