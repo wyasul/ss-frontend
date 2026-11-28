@@ -3479,3 +3479,21 @@ body, html {
   background: rgba(0, 0, 0, 0.5);
   border-color: rgba(241, 111, 11, 0.8);
 }
+
+.route-snow-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+
+.snow-chip {
+  font-size: 0.78em;
+  font-weight: bold;
+  color: #bfe6ff;
+  white-space: nowrap;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 20, 40, 0.45);
+  border: 1px solid rgba(191, 230, 255, 0.3);
+}

@@ -141,6 +141,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [allRoutesData, setAllRoutesData] = useState(null); // null = not fetched for this place/activity
   const [allRoutesLoading, setAllRoutesLoading] = useState(false);
   const [allRoutesError, setAllRoutesError] = useState(null);
+  const [routeSnow, setRouteSnow] = useState(null); // route -> {past7Cm, next3Cm, elevation}
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   const lastFartAtRef = useRef(0);
@@ -246,6 +247,38 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     setAllRoutesData(null);
     setAllRoutesError(null);
   }, [place, activity]);
+
+  // Per-route snow (Open-Meteo via backend). Used in the route panels and the
+  // all-routes modal; failures just leave the snow lines off.
+  useEffect(() => {
+    let cancelled = false;
+    setRouteSnow(null);
+    axios
+      .get(`${API_BASE_URL}/api/route-snow/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`)
+      .then((res) => {
+        if (!cancelled && res.data?.routes) setRouteSnow(res.data.routes);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [place, activity]);
+
+  const cmToIn = (cm) => Math.round((cm / 2.54) * 10) / 10;
+
+  const renderSnowLine = (routeName) => {
+    const snow = routeSnow?.[routeName];
+    if (!snow) return null;
+    return (
+      <div className="route-snow-line">
+        <span className="snow-chip">❄ past week: {cmToIn(snow.past7Cm)}″</span>
+        <span className="snow-chip">next 3 days: {cmToIn(snow.next3Cm)}″</span>
+        {snow.elevation != null && (
+          <span className="snow-chip">{Math.round(snow.elevation * 3.28084).toLocaleString()} ft</span>
+        )}
+      </div>
+    );
+  };
 
   // The open button lives in App (under the date picker); fetch when the modal opens
   useEffect(() => {
@@ -747,6 +780,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                             {entry.lastSkied ? lastSkiedLabel(entry.lastSkied) : 'not skied in last 2 weeks'}
                           </span>
                         </div>
+                        {renderSnowLine(entry.route)}
                         <div className="all-routes-dates">
                           {entry.dates.map((d) => {
                             const ds = lastSkiedDateStr(d.date);
@@ -1283,6 +1317,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           <div className="report-content">
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
+              {renderSnowLine(selectedRoute)}
               <div className="mobile-map-button-container">
                 <button
                   className="show-map-button mobile-show-map-button"
@@ -1437,6 +1472,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                         {showMap[route] ? 'Hide Map' : 'Show Map'}
                       </button>
                     </div>
+                    {renderSnowLine(route)}
                     <div className="photos-section">
                       <div className="photos-slideshow">
                         {report[route].photos.map((photo, k) => renderPhotoTileWithMap(photo, k, route))}
