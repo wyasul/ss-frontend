@@ -15,10 +15,24 @@ inject();
 // Toggle off for now; keep modal/button code in place for when we need it again.
 const SHOW_HELP_CTA = false;
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || 'https://stravastalker-05fece4b00b5.herokuapp.com';
+
+// Deep links: ?place=..&activity=..&date=YYYY-MM-DD (validated; bad values ignored)
+const VALID_PLACES = ['Jackson, WY', 'Salt Lake City, UT', 'Rogers Pass, BC'];
+const VALID_ACTIVITIES = ['trail run', 'backcountry ski'];
+const urlParams = new URLSearchParams(window.location.search);
+const urlPlace = VALID_PLACES.includes(urlParams.get('place')) ? urlParams.get('place') : null;
+const urlActivity = VALID_ACTIVITIES.includes(urlParams.get('activity')) ? urlParams.get('activity') : null;
+const urlDate = /^\d{4}-\d{2}-\d{2}$/.test(urlParams.get('date') || '') ? urlParams.get('date') : null;
+
+const DANGER_LABELS = { '-1': 'No rating', 1: 'Low', 2: 'Moderate', 3: 'Considerable', 4: 'High', 5: 'Extreme' };
+
 const App = () => {
-  const [activity, setActivity] = useState("backcountry ski");
-  const [place, setPlace] = useState("Salt Lake City, UT");
-  const [date, setDate] = useState("");
+  const [activity, setActivity] = useState(urlActivity || "backcountry ski");
+  const [place, setPlace] = useState(urlPlace || "Salt Lake City, UT");
+  const [date, setDate] = useState(urlDate || "");
+  const [avy, setAvy] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = useState(null);
@@ -43,13 +57,35 @@ const App = () => {
     const nowMST = moment().tz('America/Denver');
     const hour = nowMST.hour();
     
-    // If it's 8pm (20:00) or later, show today, otherwise show yesterday
-    if (hour >= 20) {
-      setDate(nowMST.format("YYYY-MM-DD"));
-    } else {
-      setDate(nowMST.subtract(1, 'days').format("YYYY-MM-DD"));
-    }
+    // If it's 8pm (20:00) or later, show today, otherwise show yesterday.
+    // A date from the URL (deep link) wins over the default.
+    const fallback = hour >= 20
+      ? nowMST.format("YYYY-MM-DD")
+      : nowMST.subtract(1, 'days').format("YYYY-MM-DD");
+    setDate((prev) => prev || fallback);
   }, []);
+
+  // Keep the URL shareable: reflect place/activity/date as query params
+  useEffect(() => {
+    if (!date) return;
+    const params = new URLSearchParams({ place, activity, date });
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, [place, activity, date]);
+
+  // Today's avalanche forecast for the selected place (cached server-side)
+  useEffect(() => {
+    let cancelled = false;
+    setAvy(null);
+    fetch(`${API_BASE_URL}/api/avalanche/${encodeURIComponent(place)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setAvy(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [place]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -358,6 +394,23 @@ const App = () => {
             All routes
           </button>
         </div>
+        {avy && (
+          <a
+            className={`avy-banner avy-level-${avy.dangerLevel}`}
+            href={avy.link}
+            target="_blank"
+            rel="noreferrer"
+            title={avy.travelAdvice || ''}
+          >
+            <span className="avy-dot" />
+            <span>
+              Avalanche danger today:{' '}
+              <strong>{DANGER_LABELS[avy.dangerLevel] || avy.danger}</strong>
+              {avy.dangerLevel > 0 && ` (${avy.dangerLevel}/5)`}
+              {' '}— {avy.zone} · {avy.source}
+            </span>
+          </a>
+        )}
       </div>
       <Report
         activity={activity}

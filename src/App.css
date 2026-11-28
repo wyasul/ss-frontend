@@ -1714,6 +1714,48 @@ body, html {
     cursor: default;
   }
 
+  .avy-banner {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.9em;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(50px) saturate(200%);
+    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .avy-banner:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .avy-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #888888;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Standard North American danger-scale colors */
+  .avy-level-1 .avy-dot { background: #50b848; }
+  .avy-level-2 .avy-dot { background: #fff200; }
+  .avy-level-3 .avy-dot { background: #f7941e; }
+  .avy-level-4 .avy-dot { background: #ed1c24; }
+  .avy-level-5 .avy-dot { background: #221e1f; border: 1px solid #ed1c24; }
+  .avy-level-2 { border-color: rgba(255, 242, 0, 0.4); }
+  .avy-level-3 { border-color: rgba(247, 148, 30, 0.55); }
+  .avy-level-4 { border-color: rgba(237, 28, 36, 0.6); }
+  .avy-level-5 { border-color: rgba(237, 28, 36, 0.8); }
+
   .cta-row {
     display: flex;
     gap: 12px;
