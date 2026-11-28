@@ -4,10 +4,6 @@ import { FiMaximize2 } from 'react-icons/fi';
 import Map from './Map';
 import { isMobileDevice } from '../utils';
 import { trackEvent } from '../analytics';
-import fart1 from '../assets/sounds/fart1.wav';
-import fart2 from '../assets/sounds/fart2.wav';
-import fart3 from '../assets/sounds/fart3.wav';
-import fart4 from '../assets/sounds/fart4.wav';
 import doIt from '../assets/sounds/do-it.wav';
 import rightOn from '../assets/sounds/right-on.wav';
 import yesScience from '../assets/sounds/yes-science.wav';
@@ -19,8 +15,6 @@ import helloSir from '../assets/sounds/hello-sir.wav';
 import slingingDope from '../assets/sounds/slinging-dope.wav';
 import gunOnMe from '../assets/sounds/gun-on-me.wav';
 import methFairies from '../assets/sounds/meth-fairies.wav';
-
-const FART_SOUNDS = [fart1, fart2, fart3, fart4];
 
 // Per-route hover clips. `match` gets the lowercased route name (big-map names
 // are "Route: Activity", so substring/word-boundary matches cover both).
@@ -146,9 +140,8 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [conditionsTrend, setConditionsTrend] = useState(null); // route -> [{date, adjective, conditions}]
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
-  const lastFartAtRef = useRef(0);
-  const fartCtxRef = useRef(null);
-  const fartBuffersRef = useRef([]);
+  const lastSoundAtRef = useRef(0);
+  const audioCtxRef = useRef(null);
   const routeClipBuffersRef = useRef({});
   console.log(place)
 
@@ -374,7 +367,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return undefined;
-      const ctx = fartCtxRef.current || (fartCtxRef.current = new AudioCtx());
+      const ctx = audioCtxRef.current || (audioCtxRef.current = new AudioCtx());
 
       const loadSound = (src, store) => {
         fetch(src)
@@ -385,7 +378,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
           })
           .catch(() => {});
       };
-      FART_SOUNDS.forEach((src, i) => loadSound(src, (sound) => { fartBuffersRef.current[i] = sound; }));
       ROUTE_CLIPS.forEach((clip) =>
         loadSound(clip.src, (sound) => { routeClipBuffersRef.current[clip.key] = sound; })
       );
@@ -414,10 +406,10 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
 
   const playSound = (sound) => {
     const now = Date.now();
-    if (now - lastFartAtRef.current < 120) return; // only de-dupe double-fired events
-    lastFartAtRef.current = now;
+    if (now - lastSoundAtRef.current < 120) return; // only de-dupe double-fired events
+    lastSoundAtRef.current = now;
     try {
-      const ctx = fartCtxRef.current;
+      const ctx = audioCtxRef.current;
       if (!ctx || !sound) return;
       if (ctx.state === 'suspended') ctx.resume();
       const source = ctx.createBufferSource();
@@ -432,27 +424,13 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }
   };
 
-  const playFart = () => {
-    const sounds = fartBuffersRef.current.filter(Boolean);
-    if (sounds.length === 0) return;
-    playSound(sounds[Math.floor(Math.random() * sounds.length)]);
-  };
-
-  const FART_ROUTES = ['patsy', 'albion'];
-  const isFartRoute = (routeName) =>
-    FART_ROUTES.some((name) => String(routeName).toLowerCase().includes(name));
-
   const handleRouteHover = (routeName) => {
     const name = String(routeName).toLowerCase();
     const clip = ROUTE_CLIPS.find((c) => c.match(name));
     if (clip) {
       trackEvent('route_sound', { place, activity, route: routeName, sound: clip.key });
       playSound(routeClipBuffersRef.current[clip.key]);
-      return;
     }
-    if (!isFartRoute(routeName)) return;
-    trackEvent('route_fart', { place, activity, route: routeName });
-    playFart();
   };
 
   // Deliberate navigation to a route (navbar or last-skied menu) opens its map by default
