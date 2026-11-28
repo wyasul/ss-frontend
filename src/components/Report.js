@@ -289,7 +289,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             className="snow-chip snow-chip-snotel"
             title={`${snow.snotel.station} SNOTEL, ${snow.snotel.distanceKm} km away at ${snow.snotel.elevationFt.toLocaleString()} ft`}
           >
-            📏 {snow.snotel.station}: {snow.snotel.newSnow7In}″ wk · {snow.snotel.depthIn}″ base
+            📏 SNOTEL · {snow.snotel.station}: {snow.snotel.newSnow7In}″ wk · {snow.snotel.depthIn}″ base
           </span>
         )}
       </div>
@@ -467,24 +467,82 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     }
   };
 
-  // Recent conditions per route: "11/26 Hardpack · 11/24 Powdery", full AI
-  // conditions text on hover. Entries with neither adjective nor text are skipped.
+  // Conditions trend graph: adjectives scored 1 (sketchy) to 5 (powder) and
+  // drawn as colored bars, oldest → newest. Checked worst-first so e.g.
+  // "breakable crust over powder" scores as crust, not powder.
+  const CONDITION_SCORES = [
+    [1, /sketchy|terrible|danger|horrible|bony|rocks|avalanch/i],
+    [2, /crust|breakable|icy|\bice\b|scratch|tracked out|sticky|heavy|shark|thin|wind/i],
+    [5, /powder|blower|pristine|excellent|epic|deep|butter/i],
+    [4, /soft|good|fresh|smooth|settled|cream|support|corn/i],
+  ];
+  const TREND_COLORS = { 1: '#e05252', 2: '#e08952', 3: '#e0c152', 4: '#a3d06a', 5: '#5ee06a' };
+  const analyzeConditions = (entry) => {
+    const text = `${entry.adjective || ''} ${entry.adjective ? '' : entry.conditions || ''}`;
+    for (const [score, pattern] of CONDITION_SCORES) {
+      const m = text.match(pattern);
+      if (m) {
+        const word = m[0].replace(/^\W+|\W+$/g, '');
+        return { score, word: word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : null };
+      }
+    }
+    return { score: 3, word: null };
+  };
+
   const renderConditionsTrend = (routeName) => {
     const entries = (conditionsTrend?.[routeName] || [])
       .filter((e) => e.adjective || e.conditions)
-      .slice(0, 5);
-    if (entries.length === 0) return null;
+      .slice(0, 8)
+      .reverse(); // oldest → newest
+    if (entries.length < 2) return null; // a single point isn't a trend
+    const STEP = 72;
+    const PAD = 36;
+    const width = (entries.length - 1) * STEP + PAD * 2;
+    const yFor = (score) => 52 - (score - 1) * 9; // 1→52 … 5→16
+    const points = entries.map((e, i) => {
+      const { score, word } = analyzeConditions(e);
+      return {
+        e,
+        score,
+        text: e.adjective || word, // keyword fallback so no dot goes unlabeled
+        x: PAD + i * STEP,
+        label: String(e.date).slice(5, 10).replace('-', '/'),
+      };
+    });
     return (
       <div className="conditions-trend">
-        <span className="conditions-trend-label">conditions trend:</span>
-        {entries.map((e) => {
-          const d = String(e.date).slice(5, 10).replace('-', '/');
-          return (
-            <span key={String(e.date)} className="trend-chip" title={e.conditions || ''}>
-              {d} {e.adjective || 'see note'}
-            </span>
-          );
-        })}
+        <div className="conditions-trend-label">conditions trend</div>
+        <svg className="trend-graph" width={width} height={84} role="img" aria-label="Conditions trend">
+          <line x1={PAD - 16} y1={62} x2={width - PAD + 16} y2={62} className="trend-axis" />
+          {points.length > 1 && (
+            <polyline
+              className="trend-line"
+              fill="none"
+              points={points.map((p) => `${p.x},${yFor(p.score)}`).join(' ')}
+            />
+          )}
+          {points.map((p) => (
+            <g
+              key={String(p.e.date)}
+              className="trend-point"
+              onClick={() => handleRouteDateClick(routeName, p.e.date)}
+            >
+              <title>
+                {`${p.label}${p.e.adjective ? ` — ${p.e.adjective}` : ''}${p.e.conditions ? `\n${p.e.conditions}` : ''}\nClick to open this day`}
+              </title>
+              <circle cx={p.x} cy={yFor(p.score)} r={10} fill="transparent" />
+              <circle cx={p.x} cy={yFor(p.score)} r={5} fill={TREND_COLORS[p.score]} className="trend-dot" />
+              {p.text && (
+                <text x={p.x} y={yFor(p.score) - 9} textAnchor="middle" className="trend-adjective">
+                  {p.text.length > 10 ? `${p.text.slice(0, 9)}…` : p.text}
+                </text>
+              )}
+              <text x={p.x} y={76} textAnchor="middle" className="trend-date">
+                {p.label}
+              </text>
+            </g>
+          ))}
+        </svg>
       </div>
     );
   };
@@ -1356,7 +1414,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
               {renderSnowLine(selectedRoute)}
-              {renderConditionsTrend(selectedRoute)}
               <div className="mobile-map-button-container">
                 <button
                   className="show-map-button mobile-show-map-button"
@@ -1389,6 +1446,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   <p className="route-description">AI conditions: {getRouteConditionsText(report[selectedRoute])}</p>
                 </div>
               )}
+              {renderConditionsTrend(selectedRoute)}
               <div className="activity-descriptions-toggle">
                 <button
                   type="button"
@@ -1512,7 +1570,6 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       </button>
                     </div>
                     {renderSnowLine(route)}
-                    {renderConditionsTrend(route)}
                     <div className="photos-section">
                       <div className="photos-slideshow">
                         {report[route].photos.map((photo, k) => renderPhotoTileWithMap(photo, k, route))}
@@ -1543,6 +1600,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                           <p className="route-description">AI conditions: {getRouteConditionsText(report[route])}</p>
                         </div>
                       )}
+                      {renderConditionsTrend(route)}
                       <div className="activity-descriptions-toggle">
                         <button
                           type="button"

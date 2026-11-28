@@ -3505,28 +3505,63 @@ body, html {
 }
 
 .conditions-trend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin: 2px 0 8px;
+  display: inline-block;
+  margin: 4px 0 10px;
+  padding: 8px 14px 4px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-width: 100%;
+  overflow-x: auto;
+  text-align: left;
 }
 
 .conditions-trend-label {
-  font-size: 0.75em;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.7em;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  margin-bottom: 2px;
 }
 
-.trend-chip {
-  font-size: 0.78em;
+.trend-graph {
+  overflow: visible;
+}
+
+.trend-graph .trend-date {
+  font-size: 10px;
+  fill: rgba(255, 255, 255, 0.6);
+  font-family: inherit;
+}
+
+.trend-graph .trend-adjective {
+  font-size: 9px;
   font-weight: bold;
-  color: #ffc89b;
-  white-space: nowrap;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: rgba(60, 25, 0, 0.45);
-  border: 1px solid rgba(241, 111, 11, 0.35);
+  fill: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
+}
+
+.trend-graph .trend-axis {
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
+}
+
+.trend-graph .trend-line {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1.5;
+}
+
+.trend-graph .trend-dot {
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 1;
   cursor: help;
+}
+
+.trend-graph .trend-point {
+  cursor: pointer;
+}
+
+.trend-graph .trend-point:hover .trend-dot {
+  r: 7;
+  stroke: rgba(255, 255, 255, 0.8);
 }
