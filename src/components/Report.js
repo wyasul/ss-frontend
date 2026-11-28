@@ -478,6 +478,11 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   ];
   const TREND_COLORS = { 1: '#e05252', 2: '#e08952', 3: '#e0c152', 4: '#a3d06a', 5: '#5ee06a' };
   const analyzeConditions = (entry) => {
+    // Reports now carry a GPT-rated 1–5 score; the keyword regexes below are
+    // only a fallback for history scraped before scores existed.
+    if (Number.isInteger(entry.score) && entry.score >= 1 && entry.score <= 5) {
+      return { score: entry.score, word: null };
+    }
     const text = `${entry.adjective || ''} ${entry.adjective ? '' : entry.conditions || ''}`;
     for (const [score, pattern] of CONDITION_SCORES) {
       const m = text.match(pattern);
@@ -490,10 +495,21 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   };
 
   const renderConditionsTrend = (routeName) => {
-    const entries = (conditionsTrend?.[routeName] || [])
-      .filter((e) => e.adjective || e.conditions)
-      .slice(0, 8)
-      .reverse(); // oldest → newest
+    // Walk back from the newest entry and stop at the first gap of more than
+    // 3 days — an old stale stretch isn't part of the current trend.
+    const withConditions = (conditionsTrend?.[routeName] || []).filter(
+      (e) => e.adjective || e.conditions
+    );
+    const run = [];
+    for (const e of withConditions) {
+      if (run.length > 0) {
+        const gapDays =
+          (new Date(run[run.length - 1].date) - new Date(e.date)) / 86400000;
+        if (gapDays > 3) break;
+      }
+      run.push(e);
+    }
+    const entries = run.slice(0, 8).reverse(); // oldest → newest
     if (entries.length < 2) return null; // a single point isn't a trend
     const STEP = 72;
     const PAD = 36;

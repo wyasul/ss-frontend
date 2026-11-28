@@ -50,8 +50,22 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   const casingWidth = isLarge ? 5 : 0;
   const [mapError, setMapError] = useState(null);
 
+  // Parent re-renders pass new array identities every time; rebuilding the
+  // map on identity alone tears down/recreates Mapbox constantly (slow, and
+  // mouse events landing mid-teardown crash inside mapbox-gl). Only rebuild
+  // when the actual content changes.
+  const dataSigRef = useRef(null);
+
   useEffect(() => {
-    if (map.current) return;
+    const sig =
+      `${mapId}|${(polylines || []).map((p) => p?.length).join(',')}` +
+      `|${(activityInfo || []).map((a) => a?.url).join(',')}`;
+    if (map.current && dataSigRef.current === sig) return;
+    dataSigRef.current = sig;
+    if (map.current) {
+      map.current.remove();
+      map.current = null;
+    }
 
     const initializeMap = async () => {
       if (!mapContainer.current) return; // Ensure map container is available
@@ -108,13 +122,18 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     };
 
     initializeMap();
-    return () => {
+  }, [polylines, mapId, activityInfo, onMapError]);
+
+  // Tear down only on unmount (content changes are handled above)
+  useEffect(
+    () => () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
-    };
-  }, [polylines, mapId, activityInfo, onMapError]);
+    },
+    []
+  );
 
   useEffect(() => {
     if (map.current) {
@@ -240,13 +259,11 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     if (!map.current || !mapContainer.current) return;
     const hitLayerId = `${layerId}-hit`;
     map.current.on('mouseenter', hitLayerId, e => {
-      console.log('entering polyline, isPhotoHovered:', isPhotoHoveredRef.current);
       if (!isPhotoHoveredRef.current) {
         handleMouseEnter(e, layerId, polylineIndex);
       }
     });
     map.current.on('mouseleave', hitLayerId, () => {
-      console.log('exiting polyline, isPhotoHovered:', isPhotoHoveredRef.current);
       if (!isPhotoHoveredRef.current) {
         handleMouseLeave(layerId);
       }
@@ -263,7 +280,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   };
 
   const handleMouseEnter = (e, layerId, polylineIndex) => {
-    console.log('Entering polyline');
     resetPolylines();
     clearAllHoveredActivities();
     map.current.getCanvas().style.cursor = 'pointer';
@@ -289,7 +305,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   };
 
   const handleMouseLeave = (layerId) => {
-    console.log('mouse left polyline')
     map.current.getCanvas().style.cursor = '';
     map.current.setPaintProperty(layerId, 'line-color', lineColor);
     map.current.setPaintProperty(layerId, 'line-width', lineWidth);
@@ -307,7 +322,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
     if (isPhotoHoveredRef.current) return;
     const activityUrl = activityInfo[polylineIndex].url;
     const stravaId = activityUrl.split('/')[4];
-    console.log('activityUrl:', activityUrl)
 
     if (isMobileDevice()) {
       window.location.href = `strava://activities/${stravaId}`;
@@ -333,10 +347,8 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   };
 
   const handlePhotoMouseEnterGallery = (event, layerId) => {
-    console.log('entered gallery')
     const photo = event.detail.photo;
     const polylineIndex = event.detail.polylineIndex;
-    console.log('Photo marker mouse enter:', photo, polylineIndex);
     setIsPhotoHovered(true);
 
     const activityId = `activity-${mapId}-${polylineIndex}`;
@@ -351,7 +363,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
 
   const handlePhotoMouseLeaveGallery = (event, layerId) => {
     const polylineIndex = event.detail.polylineIndex;
-    console.log('Photo marker mouse leave:', polylineIndex);
     setIsPhotoHovered(false);
     map.current.setPaintProperty(layerId, 'line-color', lineColor);
     map.current.setPaintProperty(layerId, 'line-width', lineWidth);
@@ -360,17 +371,13 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   };
 
   const handlePhotoMouseEnterMap = (event, mapId) => {
-    console.log('entered map photo')
     resetPolylines();
     clearAllHoveredActivities();
     const photo = event.detail.photo;
     const polylineIndex = event.detail.polylineIndex;
-    console.log('Handling photo mouse enter map:', photo, polylineIndex);
     setIsPhotoHovered(true);
-    console.log('isPhotoHoveredRef.current:', isPhotoHoveredRef.current); // Use the ref value for logging
 
     const activityId = `activity-${mapId}-${polylineIndex}`;
-    console.log(activityId)
 
     resetPolylines();
     clearAllHoveredActivities();
@@ -384,7 +391,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
   const handlePhotoMouseLeaveMap = (event, mapId) => {
     const polylineIndex = event.detail.polylineIndex;
     setIsPhotoHovered(false);
-    console.log('isPhotoHoveredRef.current:', isPhotoHoveredRef.current);
     setTimeout(() => {
       if (!isPhotoHoveredRef.current) {
         map.current.setPaintProperty(`route-${mapId}-${polylineIndex}`, 'line-color', lineColor);
@@ -475,7 +481,6 @@ const Map = ({ polylines, mapId, activityInfo, photos, displayImages, setDisplay
 
     if (displayImages && photos.length > 0) {
       photos.forEach((photo) => {
-        console.log('photo', photo);
         if (photo.lat && photo.lng) {
           const el = document.createElement('div');
           // Sizing/border live in CSS so the large map can render these as small
