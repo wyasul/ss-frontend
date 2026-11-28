@@ -1751,6 +1751,10 @@ body, html {
     white-space: nowrap;
   }
 
+  .all-routes-row-empty {
+    opacity: 0.45;
+  }
+
   .all-routes-dates {
     display: flex;
     flex-wrap: wrap;

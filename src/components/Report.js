@@ -737,10 +737,15 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                   </p>
                   <ul className="all-routes-list">
                     {allRoutesData.map((entry) => (
-                      <li key={entry.route} className="all-routes-row">
+                      <li
+                        key={entry.route}
+                        className={`all-routes-row${entry.dates.length === 0 ? ' all-routes-row-empty' : ''}`}
+                      >
                         <div className="all-routes-name">
                           <span className="last-skied-route">{entry.route}</span>
-                          <span className="all-routes-when">{lastSkiedLabel(entry.lastSkied)}</span>
+                          <span className="all-routes-when">
+                            {entry.lastSkied ? lastSkiedLabel(entry.lastSkied) : 'not skied in last 2 weeks'}
+                          </span>
                         </div>
                         <div className="all-routes-dates">
                           {entry.dates.map((d) => {
