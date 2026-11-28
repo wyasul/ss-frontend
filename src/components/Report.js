@@ -124,6 +124,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [error, setError] = useState(null);
   const [displayImagesState, setDisplayImagesState] = useState({});
   const [selectedRoute, setSelectedRoute] = useState(null);
+  const [routeFilter, setRouteFilter] = useState('');
   const [showMap, setShowMap] = useState({}); // State to track map visibility
   const [showActivityDescriptions, setShowActivityDescriptions] = useState({}); // per-route: show Strava description under each activity
   const [showRateLimitInfo, setShowRateLimitInfo] = useState(false);
@@ -248,6 +249,10 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
     setAllRoutesData(null);
     setAllRoutesError(null);
   }, [place, activity]);
+
+  useEffect(() => {
+    setRouteFilter('');
+  }, [place, activity, date]);
 
   // Per-route snow (Open-Meteo via backend). Used in the route panels and the
   // all-routes modal; failures just leave the snow lines off.
@@ -1365,9 +1370,25 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
               </div>
             </li>
           )}
+          {report && reportOrder.length > 5 && (
+            <li className="route-filter-item">
+              <input
+                type="search"
+                className="route-filter-input"
+                placeholder="Filter routes…"
+                value={routeFilter}
+                onChange={(e) => setRouteFilter(e.target.value)}
+                aria-label="Filter routes"
+              />
+            </li>
+          )}
           {report &&
-            reportOrder.map((routeName, index) => (
-              <li key={index}>
+            reportOrder
+              .filter((routeName) =>
+                String(routeName).toLowerCase().includes(routeFilter.trim().toLowerCase())
+              )
+              .map((routeName, index) => (
+              <li key={routeName}>
                 <div className="route-bar">
                   <a
                     href={`#${routeName}`}
