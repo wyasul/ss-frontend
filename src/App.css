@@ -3591,3 +3591,20 @@ body, html {
 .route-filter-input:focus {
   border-color: rgba(241, 111, 11, 0.6);
 }
+
+/* Narrow viewports: snow chips must never exceed the screen width */
+@media (max-width: 768px) {
+  .route-snow-line {
+    gap: 5px;
+  }
+
+  .snow-chip {
+    font-size: 0.72em;
+    padding: 2px 9px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+  }
+}
