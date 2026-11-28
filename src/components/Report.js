@@ -15,11 +15,16 @@ import helloSir from '../assets/sounds/hello-sir.wav';
 import slingingDope from '../assets/sounds/slinging-dope.wav';
 import gunOnMe from '../assets/sounds/gun-on-me.wav';
 import methFairies from '../assets/sounds/meth-fairies.wav';
+import properDump from '../assets/sounds/proper-dump.wav';
+import fatStacks from '../assets/sounds/fat-stacks.wav';
+import openedMyEyes from '../assets/sounds/opened-my-eyes.wav';
+import haveAPlan from '../assets/sounds/have-a-plan.wav';
+import myMinerals from '../assets/sounds/my-minerals.wav';
 
 // Per-route hover clips. `match` gets the lowercased route name (big-map names
 // are "Route: Activity", so substring/word-boundary matches cover both).
 const ROUTE_CLIPS = [
-  { key: 'do-it', src: doIt, match: (n) => n.includes('tanner') },
+  { key: 'do-it', src: doIt, match: (n) => n.includes('tanner') || n.includes('do it') },
   { key: 'right-on', src: rightOn, match: (n) => n.includes('grunge') },
   { key: 'yes-science', src: yesScience, match: (n) => n.includes('cold fusion') },
   { key: 'too-risky', src: tooRisky, match: (n) => n.includes('medusa') },
@@ -31,6 +36,11 @@ const ROUTE_CLIPS = [
   // word-boundary: bare 'aire' would also match e.g. "prairie"
   { key: 'gun-on-me', src: gunOnMe, match: (n) => /\baire\b/.test(n) },
   { key: 'meth-fairies', src: methFairies, match: (n) => n.includes('coalpit') },
+  { key: 'proper-dump', src: properDump, match: (n) => n.includes('patsy') || n.includes('poop chute') },
+  { key: 'my-minerals', src: myMinerals, match: (n) => n.includes('mineral fork') },
+  { key: 'fat-stacks', src: fatStacks, match: (n) => n.includes('tallboy') || n.includes('skillet') },
+  { key: 'have-a-plan', src: haveAPlan, match: (n) => n.includes('springtime') },
+  { key: 'opened-my-eyes', src: openedMyEyes, match: (n) => n.includes('northern teton') },
 ];
 
 const emojiSets = {
