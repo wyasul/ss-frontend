@@ -142,6 +142,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   const [allRoutesLoading, setAllRoutesLoading] = useState(false);
   const [allRoutesError, setAllRoutesError] = useState(null);
   const [routeSnow, setRouteSnow] = useState(null); // route -> {past7Cm, next3Cm, elevation}
+  const [conditionsTrend, setConditionsTrend] = useState(null); // route -> [{date, adjective, conditions}]
   const routeRefs = useRef({});
   const reportViewRef = useRef(null);
   const lastFartAtRef = useRef(0);
@@ -253,10 +254,17 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
   useEffect(() => {
     let cancelled = false;
     setRouteSnow(null);
+    setConditionsTrend(null);
     axios
       .get(`${API_BASE_URL}/api/route-snow/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`)
       .then((res) => {
         if (!cancelled && res.data?.routes) setRouteSnow(res.data.routes);
+      })
+      .catch(() => {});
+    axios
+      .get(`${API_BASE_URL}/api/conditions-history/${encodeURIComponent(place)}/${encodeURIComponent(activity)}`)
+      .then((res) => {
+        if (!cancelled && res.data?.routes) setConditionsTrend(res.data.routes);
       })
       .catch(() => {});
     return () => {
@@ -275,6 +283,14 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         <span className="snow-chip">❄ next 3 days: {cmToIn(snow.next3Cm)}″</span>
         {snow.elevation != null && (
           <span className="snow-chip">{Math.round(snow.elevation * 3.28084).toLocaleString()} ft</span>
+        )}
+        {snow.snotel && (
+          <span
+            className="snow-chip snow-chip-snotel"
+            title={`${snow.snotel.station} SNOTEL, ${snow.snotel.distanceKm} km away at ${snow.snotel.elevationFt.toLocaleString()} ft`}
+          >
+            📏 {snow.snotel.station}: {snow.snotel.newSnow7In}″ wk · {snow.snotel.depthIn}″ base
+          </span>
         )}
       </div>
     );
@@ -449,6 +465,28 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
         routeRefs.current[routeName]?.scrollIntoView({ behavior: 'smooth' });
       });
     }
+  };
+
+  // Recent conditions per route: "11/26 Hardpack · 11/24 Powdery", full AI
+  // conditions text on hover. Entries with neither adjective nor text are skipped.
+  const renderConditionsTrend = (routeName) => {
+    const entries = (conditionsTrend?.[routeName] || [])
+      .filter((e) => e.adjective || e.conditions)
+      .slice(0, 5);
+    if (entries.length === 0) return null;
+    return (
+      <div className="conditions-trend">
+        <span className="conditions-trend-label">conditions trend:</span>
+        {entries.map((e) => {
+          const d = String(e.date).slice(5, 10).replace('-', '/');
+          return (
+            <span key={String(e.date)} className="trend-chip" title={e.conditions || ''}>
+              {d} {e.adjective || 'see note'}
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   const handleLastSkiedRouteClick = (routeEntry) => {
@@ -1318,6 +1356,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
             <div className="route-section" ref={(el) => (routeRefs.current[selectedRoute] = el)}>
               <h2>{selectedRoute}</h2>
               {renderSnowLine(selectedRoute)}
+              {renderConditionsTrend(selectedRoute)}
               <div className="mobile-map-button-container">
                 <button
                   className="show-map-button mobile-show-map-button"
@@ -1473,6 +1512,7 @@ const Report = ({ activity, place, date, setLoading, loading, isMobile, hideNavb
                       </button>
                     </div>
                     {renderSnowLine(route)}
+                    {renderConditionsTrend(route)}
                     <div className="photos-section">
                       <div className="photos-slideshow">
                         {report[route].photos.map((photo, k) => renderPhotoTileWithMap(photo, k, route))}
